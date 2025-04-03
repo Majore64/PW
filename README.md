@@ -1,19 +1,35 @@
-# Projeto PW
-Este Projeto vai ...
+# PW1
 
-## Tecnologias Utilizados
-- CSS
-- HTML
-- VUE
-- JavaScript
+This template should help get you started developing with Vue 3 in Vite.
 
-## Comandos Necessários
-npm run dev - Inicia o frontend e backend para desenvolvimento
-npm run build - Inicia o frontend e backend para produção
+## Recommended IDE Setup
 
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
 
-### FRONTEND (cd frontend)
-npm install - Instala os node_modules
-npm run dev - Inicia o vite para desenvolvimento
-npm run build - Construi o vite para produção
+## Customize configuration
 
+See [Vite Configuration Reference](https://vite.dev/config/).
+
+## Project Setup
+
+```sh
+npm install
+```
+
+### Compile and Hot-Reload for Development
+
+```sh
+npm run dev
+```
+
+### Compile and Minify for Production
+
+```sh
+npm run build
+```
+
+### Lint with [ESLint](https://eslint.org/)
+
+```sh
+npm run lint
+```
