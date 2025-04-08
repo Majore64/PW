@@ -1,12 +1,17 @@
 <template>
-  <section class="hero-section">
-    <img src="@/assets/Pagina_inicial.png" class="hero-img" alt="Hospital" />
-    <div class="hero-text">
-      <h1><span class="text-white">Eyes</span><span class="text-primary">EveryWhere</span></h1>
-      <p>Para quem cuida de vidas, cada detalhe importa.</p>
-      <button class="btn-contact">Contacte-nos</button>
+  <header class="header">
+    <div class="left-section">
+      <img src="@/assets/Logo.png" alt="Logo" class="logo" />
     </div>
-  </section>
+    <nav class="middle-section">
+      <button class="nav-btn">Quem Somos</button>
+      <button class="nav-btn">Contacte-nos</button>
+    </nav>
+    <div class="right-section">
+      <button class="nav-btn login-btn">Login</button>
+      <button class="nav-btn filled">Sign Up</button>
+    </div>
+  </header>
 </template>
 
 <script setup>
@@ -14,36 +19,58 @@
 </script>
 
 <style scoped>
-.hero-section {
-  position: relative;
-  text-align: center;
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 40px;
+  background-color: white;
+  color: #00b8b8;
+}
+
+.logo {
+  height: 40px;
+  object-fit: contain;
+  margin-right: 16px;
+}
+
+.middle-section,
+.right-section {
+  display: flex;
+  align-items: center;
+}
+
+.middle-section {
+  gap: 20px;
+  flex: 1;
+  justify-content: center; /* <- CENTRALIZA os botões */
+}
+
+.right-section {
+  gap: 20px;
+}
+
+.login-btn {
+  margin-left: 40px; /* Aumenta distância entre "Contacte-nos" e "Login" */
+}
+
+.nav-btn {
+  padding: 8px 12px;
+  border: 1px solid #00b8b8;
+  background-color: white;
+  color: #00b8b8;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-btn.filled {
+  background-color: #00b8b8;
   color: white;
 }
 
-.hero-img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-.hero-text {
-  position: absolute;
-  top: 20%;
-  left: 10%;
-  text-align: left;
-}
-
-.text-primary {
-  color: #00b8b8;
-}
-
-.btn-contact {
-  background-color: white;
-  color: #00b8b8;
-  border: none;
-  padding: 8px 16px;
-  margin-top: 12px;
-  cursor: pointer;
-  font-weight: bold;
+.nav-btn:hover {
+  opacity: 0.9;
 }
 </style>
