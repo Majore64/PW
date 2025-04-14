@@ -54,7 +54,7 @@ const routes = [
   },
   {
     path: '/',
-    redirect: '/funcionarios' // Página inicial padrão
+    redirect: '/ocorrencias' 
   }
 ];
 

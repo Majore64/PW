@@ -54,7 +54,7 @@ export default {
     handleCredentialResponse(response) {
       const user = this.decodeJWT(response.credential);
       localStorage.setItem("user", JSON.stringify(user));
-      this.$router.push("/");
+      this.$router.push("/ocorrencias");
     },
     decodeJWT(token) {
       const base64Url = token.split('.')[1];
