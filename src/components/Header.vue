@@ -1,14 +1,17 @@
 <template>
   <header class="header">
-    <div class="left-section">
+    <!-- Esquerda: Logo + navegação -->
+    <div class="left-group"> 
       <img src="@/assets/Logo.png" alt="Logo" class="logo" />
+      <div class="nav-buttons left">
+        <a href="#quem-somos" class="nav-btn">Quem Somos</a>
+        <a href="#contactos" class="nav-btn">Contacte-nos</a>
+      </div>
     </div>
-    <nav class="middle-section">
-      <button class="nav-btn">Quem Somos</button>
-      <button class="nav-btn">Contacte-nos</button>
-    </nav>
-    <div class="right-section">
-      <button class="nav-btn login-btn">Login</button>
+
+    <!-- Direita: Login e Sign Up -->
+    <div class="nav-buttons right">
+      <button class="nav-btn">Login</button>
       <button class="nav-btn filled">Sign Up</button>
     </div>
   </header>
@@ -21,46 +24,39 @@
 <style scoped>
 .header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 12px 40px;
+  align-items: center;
   background-color: white;
-  color: #00b8b8;
+  padding: 20px 40px;
+  height: 100px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.left-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
 .logo {
-  height: 40px;
+  height: 60px;
   object-fit: contain;
-  margin-right: 16px;
 }
 
-.middle-section,
-.right-section {
+.nav-buttons {
   display: flex;
   align-items: center;
-}
-
-.middle-section {
   gap: 20px;
-  flex: 1;
-  justify-content: center; /* <- CENTRALIZA os botões */
-}
-
-.right-section {
-  gap: 20px;
-}
-
-.login-btn {
-  margin-left: 40px; /* Aumenta distância entre "Contacte-nos" e "Login" */
 }
 
 .nav-btn {
-  padding: 8px 12px;
+  padding: 12px 24px;
   border: 1px solid #00b8b8;
   background-color: white;
   color: #00b8b8;
-  border-radius: 12px;
-  font-size: 11px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -71,6 +67,6 @@
 }
 
 .nav-btn:hover {
-  opacity: 0.9;
+  opacity: 0.85;
 }
 </style>
