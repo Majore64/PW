@@ -1,0 +1,14 @@
+$primary: #2A9D8F;
+$secondary: #07B4BA;
+$accent: #E9C46A;
+$danger: #E76F51;
+
+// Configuração do Bootstrap
+$theme-colors: (
+  "primary": $primary,
+  "secondary": $secondary,
+  "accent": $accent,
+  "danger": $danger
+);
+
+@import "~bootstrap/scss/bootstrap";
