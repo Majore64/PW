@@ -41,7 +41,7 @@
 <div class="bottom-nav border-top p-4 " style="height: 110px; margin-top: -15px;">
     <!-- Linha 1: Criar | Finalizar | Editar -->
     <div class="d-flex justify-content-around mb-5 mt-4">
-      <button class="btn p-0 text-center" style="width: 30%;">
+      <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/criar')">
         <i class="bi bi-plus-lg d-block text-secondary" style="font-size: 40px;"></i>
         <span class="d-block large ">Criar</span>
         <span class="d-block large ">ocorrências</span>
