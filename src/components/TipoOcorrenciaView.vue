@@ -1,19 +1,19 @@
 <template>
   <div class="tipo-ocorrencia">
     <div class="header">
-        <div class="left-group">
-          <button class="back-button" @click="$router.back()">←</button>
-          <h2 class="titulo-ocorrencia">Tipo de Ocorrência</h2>
-        </div>
-        <img src="@/assets/Logo.png" alt="Logo" class="logo" />
+      <div class="left-group">
+        <button class="back-button" @click="$router.back()">←</button>
+        <h2 class="titulo-ocorrencia">Tipo de Ocorrência</h2>
       </div>
+      <img src="@/assets/Logo.png" alt="Logo" class="logo" />
+    </div>
 
     <div class="cards-grid">
       <div class="ocorrencia-card">
         <div class="card-content">
           <div class="card-text">
             <h3>Local Sujo</h3>
-            <button class="seguinte">Seguinte →</button>
+            <button class="seguinte" @click="$router.push({ name: 'CriarOcorrencia', query: { tipo: 'Local Sujo' } })">Seguinte →</button>
           </div>
           <img src="@/assets/localsujo.png" alt="Local Sujo" class="card-img" />
         </div>
@@ -23,7 +23,7 @@
         <div class="card-content">
           <div class="card-text">
             <h3>Equipamento Danificado</h3>
-            <button class="seguinte">Seguinte →</button>
+            <button class="seguinte" @click="$router.push({ name: 'CriarOcorrencia', query: { tipo: 'Equipamento Danificado' } })">Seguinte →</button>
           </div>
           <img src="@/assets/Equipamentodanificado.png" alt="Equipamento Danificado" class="card-img" />
         </div>
@@ -33,7 +33,7 @@
         <div class="card-content">
           <div class="card-text">
             <h3>Falta de<br>Material Médico</h3>
-            <button class="seguinte">Seguinte →</button>
+            <button class="seguinte" @click="$router.push({ name: 'CriarOcorrencia', query: { tipo: 'Falta de Material Médico' } })">Seguinte →</button>
           </div>
           <img src="@/assets/Faltadematerial.png" alt="Falta de Material Médico" class="card-img" />
         </div>
@@ -43,7 +43,7 @@
         <div class="card-content">
           <div class="card-text">
             <h3>Material Fora<br>do Lugar</h3>
-            <button class="seguinte">Seguinte →</button>
+            <button class="seguinte" @click="$router.push({ name: 'CriarOcorrencia', query: { tipo: 'Material Fora do Lugar' } })">Seguinte →</button>
           </div>
           <img src="@/assets/Materialforadolugar.png" alt="Material Fora do Lugar" class="card-img" />
         </div>
@@ -79,16 +79,6 @@
   margin: 0;
 }
 
-
-
-.titulo {
-  text-align: center;
-  flex: 1;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #12203c;
-}
-
 .back-button {
   background-color: #1c2d50;
   color: white;
@@ -99,7 +89,7 @@
 }
 
 .logo {
-  width: 100px;
+  width: 120px;
 }
 
 .cards-grid {
@@ -111,7 +101,7 @@
 
 .ocorrencia-card {
   background-color: #d8ecfb;
-  border: 2px solid black; /* borda preta */
+  border: 2px solid black;
   border-radius: 12px;
   padding: 1rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);

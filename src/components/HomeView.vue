@@ -65,13 +65,15 @@
             </router-link>
 
           <!-- Histórico de Ocorrências -->
-          <div class="card">
+          <router-link to="/historico" class="card-link">
+            <div class="card">
               <img src="@/assets/Historico_ocorrencias.png" alt="Histórico de Ocorrências" class="card-img" />
               <h3 class="card-title">Histórico de Ocorrências</h3>
               <p class="card-text">
                 Consulta todas as ocorrências já registadas, com detalhes sobre o estado, tipo de problema e local, facilitando o acompanhamento e gestão.
               </p>
-    </div>
+            </div>
+          </router-link>
         </div>
       </section>
 
