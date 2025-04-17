@@ -64,7 +64,7 @@
                     </button>
                 </div>
 
-                <button class="btn btn-secondary text-white mt-3 fs-1 rounded-5" style="width:135px">Criar</button>
+                <button class="btn btn-secondary text-white mt-3 fs-1 rounded-4" style="width:135px">Criar</button>
         </div>
 </div>
 

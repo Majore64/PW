@@ -46,7 +46,7 @@
         <span class="d-block large ">Criar</span>
         <span class="d-block large ">ocorrências</span>
       </button>
-      <button class="btn p-0 text-center" style="width: 30%;">
+      <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/finalizar')">
         <i class="bi bi-check-lg d-block text-secondary" style="font-size: 40px;"></i>
         <span class="d-block large ">Finalizar</span>
         <span class="d-block large ">ocorrências</span>
@@ -65,7 +65,7 @@
         <span class="d-block large ">Histórico</span>
       </button>
       
-      <button class="btn p-0 text-center" style="width: 80%;">
+      <button class="btn p-0 text-center" style="width: 80%;" @click="$router.push('/perfil')">
         <i class="bi bi-person d-block text-secondary" style="font-size: 40px;"></i>
         <span class="d-block large ">Perfil</span>
       </button>
