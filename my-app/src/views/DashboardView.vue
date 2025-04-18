@@ -60,7 +60,7 @@
 
     <!-- Linha 2: Histórico | (vazio) | Perfil -->
     <div class="d-flex justify-content-around">
-      <button class="btn p-0 text-center" style="width: 80%;">
+      <button class="btn p-0 text-center" style="width: 80%;" @click="$router.push('/historico')">
         <i class="bi bi-clock d-block text-secondary" style="font-size: 40px;"></i>
         <span class="d-block large ">Histórico</span>
       </button>

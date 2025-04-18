@@ -5,7 +5,8 @@ import CriarOcorrenciaView from '../views/CriarOcorrenciaView.vue' // Novo impor
 import FinalizarOcorrenciaView from '@/views/FinalizarOcorrenciaView.vue'
 import VizualizarView from '@/views/VizualizarView.vue'
 import PerfilView from '@/views/PerfilView.vue'
-
+import EditarPerfilView from '@/views/EditarPerfilView.vue'
+import HistoricoView from '@/views/HistoricoView.vue'
 
 const routes = [
   { path: '/', component: LoginView },
@@ -14,6 +15,8 @@ const routes = [
   { path: '/finalizar', component: FinalizarOcorrenciaView },
   { path: '/vizualizar', component: VizualizarView },
   { path: '/perfil', component: PerfilView },
+  { path: '/editar', component: EditarPerfilView },
+  { path: '/historico', component: HistoricoView },
 ]
 
 const router = createRouter({

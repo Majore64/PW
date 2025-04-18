@@ -18,7 +18,7 @@
       </div>
 
       <div class="d-flex justify-content-end">
-        <button class="btn text-white me-5" style="width:110px; background-color: #93E5E0;">
+        <button class="btn text-white me-5" @click="$router.push('/editar')" style="width:110px; background-color: #93E5E0; ">
         <i class="bi bi-pencil-square"></i> Editar
         </button>
       </div>
