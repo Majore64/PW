@@ -1,3 +1,9 @@
+<script setup>
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router'
+</script>
+
+
 <template>
     
       <!-- Cabeçalho (opcional) -->

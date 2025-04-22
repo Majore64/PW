@@ -1,3 +1,9 @@
+<script setup>
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router'
+</script>
+
+
 <template>
     <div class="criar-ocorrencia-view">
       <!-- Cabeçalho (opcional) -->
