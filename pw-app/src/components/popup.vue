@@ -2,33 +2,35 @@
     <div class="popup">
       <div class="popup-inner">
         <h2 class="popup-title">Nova ocorrência</h2>
-        
-        <div class="form-container">
-          <div class="form-section">
-            <h3>Nome funcionário</h3>
-            <input type="text" class="form-input" placeholder="Charlene Reed">
-            
-            <h3>Tipo de ocorrência</h3>
-            <input type="text" class="form-input" placeholder="Limpeza">
-            
-            <h3>Localização Alocada</h3>
-            <input type="text" class="form-input" placeholder="Piso X, sala Y">
+  
+        <form @submit.prevent="handleSubmit">
+          <div class="form-container">
+            <div class="form-section">
+              <h3>Nome funcionário</h3>
+              <input v-model="form.nomeFuncionario" type="text" class="form-input" placeholder="Charlene Reed" />
+  
+              <h3>Tipo de ocorrência</h3>
+              <input v-model="form.tipoOcorrencia" type="text" class="form-input" placeholder="Limpeza" />
+  
+              <h3>Localização Alocada</h3>
+              <input v-model="form.localizacao" type="text" class="form-input" placeholder="Piso X, sala Y" />
+            </div>
+  
+            <div class="form-section">
+              <h3>Número funcionário</h3>
+              <input v-model="form.numeroFuncionario" type="text" class="form-input" placeholder="139284321" />
+  
+              <h3>Data</h3>
+              <input v-model="form.data" type="text" class="form-input" placeholder="24/07/2024" />
+            </div>
           </div>
-          
-          <div class="form-section">
-            <h3>Número funcionário</h3>
-            <input type="text" class="form-input" placeholder="139284321">
-            
-            <h3>Data</h3>
-            <input type="text" class="form-input" placeholder="24/07/2024">
+  
+          <div class="form-actions">
+            <button type="submit" class="submit-button">Criar</button>
+            <button type="button" class="cancel-button" @click="TogglePopup()">Cancelar</button>
           </div>
-        </div>
-        
-        <div class="form-actions">
-          <button class="submit-button">Criar</button>
-          <button class="cancel-button" @click="TogglePopup()">Cancelar</button>
-        </div>
-        
+        </form>
+  
         <button class="popup-close" @click="TogglePopup()">
           &times;
         </button>
@@ -36,12 +38,34 @@
     </div>
   </template>
   
+  
   <script>
-  export default {
-    name: "PopupModal",
-    props: ['TogglePopup']
+export default {
+  name: "PopupModal",
+  props: ['TogglePopup'],
+  data() {
+    return {
+      form: {
+        nomeFuncionario: '',
+        tipoOcorrencia: '',
+        localizacao: '',
+        numeroFuncionario: '',
+        data: '',
+      }
+    }
+  },
+  methods: {
+    handleSubmit() {
+      // Aqui podes fazer o que quiseres com os dados, ex: enviar para uma API ou consola
+      console.log("Dados submetidos:", this.form);
+
+      // Após o envio, podes limpar o formulário ou fechar o popup
+      this.TogglePopup();
+    }
   }
-  </script>
+}
+</script>
+
   
   <style lang="scss" scoped>
   .popup {
