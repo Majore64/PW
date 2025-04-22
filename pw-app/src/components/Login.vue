@@ -1,7 +1,8 @@
 <template>
   <div class="login">
+    <img src="../assets/logo.png" alt="Logo da Empresa" style="width: 200px;">
     <h1>Bem-vindo!</h1>
-    <p>Faça login para acessar o sistema.</p>
+    <p>Faça login para acessar ao EyesEveryWhere.</p>
 
     <!-- Botão Google será renderizado aqui -->
     <div id="googleButton"></div>

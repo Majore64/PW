@@ -3,11 +3,12 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
+        <img src="../assets/logo.png" alt="Logo da Empresa" style="width: 50px;">
         <h3>EyesEveryWhere</h3>
       </div>
       <ul class="sidebar-nav">
         <li class="nav-item">
-          <router-link to="/ocorrencias" class="nav-link">Ocorrencias</router-link>
+          <router-link to="/ocorrencias" class="nav-link">Ocorrências</router-link>
         </li>
         <li class="nav-item">
           <router-link to="/funcionarios" class="nav-link">Funcionários</router-link>
@@ -98,14 +99,16 @@ export default {
 
 .sidebar-header {
   padding: 20px;
-  text-align: center;
   border-bottom: 1px solid #eee;
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
 }
 
 .sidebar-header h3 {
-  color: #343a40;
+  color:#03B5AA;
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 600;
 }
 

@@ -9,5 +9,12 @@ export default {
 </script>
 
 <style>
-/* Estilos globais se necessário */
+    html, body, #app {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      font-family: sans-serif;
+    }
 </style>

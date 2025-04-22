@@ -7,6 +7,7 @@ import Ocorrencias from "@/components/Ocorrencias.vue";
 import Estatisticas from "@/components/Estatisticas.vue";
 import Historico from "@/components/Historico.vue";
 import Definicoes from "@/components/Definicoes.vue";
+import Perfil from '@/components/Perfil.vue';
 
 const routes = [
   {
@@ -48,6 +49,12 @@ const routes = [
         path: 'definicoes', 
         name: 'Definicoes',
         component: Definicoes 
+      },
+      {
+        path: '/funcionarios/:id',
+        name: 'Perfil',
+        component: Perfil,
+        props: true
       },
     ],
     meta: { requiresAuth: true },
