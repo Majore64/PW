@@ -82,7 +82,7 @@ export default {
 .default-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #F5F7FA;
 }
 
 /* Sidebar */
