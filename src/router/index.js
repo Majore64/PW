@@ -4,10 +4,7 @@ import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
 import LoginPage from "@/components/Login.vue";
-import Dashboard from "@/components/Dasboard.vue";
-import Vue from "vue";
 
-Vue.use(Router);
 const routes = [
   {
     path: '/',
@@ -29,6 +26,11 @@ const routes = [
     name: 'Historico',
     component: HistoricoOcorrenciasView
   },
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginPage
+  }
 ]
 
 const router = createRouter({
@@ -36,18 +38,4 @@ const router = createRouter({
   routes
 })
 
-export default router({
-  mode: "history",
-  routes: [
-    {
-      path: "/",
-      name: "Login",
-      component: LoginPage
-    },
-    {
-      path: "/dashboard",
-      name: "Dashboard",
-      component: Dashboard
-    }
-  ]
-});
+export default router
