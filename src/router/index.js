@@ -24,15 +24,15 @@ const routes = [
     path: '/historico',
     name: 'Historico',
     component: HistoricoOcorrenciasView
-  }
+  },
   {
     path: '/',
-    redirect: '/Login',
-  }
+    redirect: '/Login'
+  },
   {
     path: '/login',
     name: 'Login',
-    component: Login,
+    component: Login
   }
 ]
 
