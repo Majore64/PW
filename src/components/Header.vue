@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <!-- Esquerda: Logo + navegação -->
-    <div class="left-group"> 
+    <div class="left-group">
       <img src="@/assets/Logo.png" alt="Logo" class="logo" />
       <div class="nav-buttons left">
         <a href="#quem-somos" class="nav-btn">Quem Somos</a>
@@ -11,15 +11,12 @@
 
     <!-- Direita: Login e Sign Up -->
     <div class="nav-buttons right">
-      <button class="nav-btn">Login</button>
+      <a href="#login" class="nav-btn">Login</a>
       <button class="nav-btn filled">Sign Up</button>
     </div>
   </header>
 </template>
 
-<script setup>
-// Nenhum script necessário por agora
-</script>
 
 <style scoped>
 .header {

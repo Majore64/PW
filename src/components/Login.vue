@@ -5,7 +5,7 @@
     <p>Faça login para acessar ao EyesEveryWhere.</p>
 
     <!-- Botão Google será renderizado aqui -->
-    <div id="googleButton"></div>
+    <div id="#login"></div>
   </div>
 </template>
 
@@ -43,7 +43,7 @@ export default {
       });
 
       google.accounts.id.renderButton(
-        document.getElementById("googleButton"),
+        document.getElementById("#login"),
         {
           theme: "outline",
           size: "large",
