@@ -3,6 +3,7 @@ import HomeView from '@/components/HomeView.vue'
 import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
+import Login from '@/components/Login.vue'
 const routes = [
   {
     path: '/',
@@ -23,6 +24,15 @@ const routes = [
     path: '/historico',
     name: 'Historico',
     component: HistoricoOcorrenciasView
+  }
+  {
+    path: '/',
+    redirect: '/Login',
+  }
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
   }
 ]
 
