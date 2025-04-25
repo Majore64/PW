@@ -3,7 +3,11 @@ import HomeView from '@/components/HomeView.vue'
 import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
-import Login from '@/components/Login.vue'
+import LoginPage from "@/components/Login.vue";
+import Dashboard from "@/components/Dashboard.vue";
+import Vue from "vue";
+
+Vue.use(Router);
 const routes = [
   {
     path: '/',
@@ -25,15 +29,6 @@ const routes = [
     name: 'Historico',
     component: HistoricoOcorrenciasView
   },
-  {
-    path: '/',
-    redirect: '/Login'
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login
-  }
 ]
 
 const router = createRouter({
@@ -41,4 +36,18 @@ const router = createRouter({
   routes
 })
 
-export default router
+export default router({
+  mode: "history",
+  routes: [
+    {
+      path: "/",
+      name: "Login",
+      component: LoginPage
+    },
+    {
+      path: "/dashboard",
+      name: "Dashboard",
+      component: Dashboard
+    }
+  ]
+});
