@@ -9,6 +9,9 @@ export default [
     files: ['**/*.{js,mjs,jsx,vue}'],
   },
 
+  {rules: {
+    'vue/multi-word-component-names': 'off'
+  }},
   {
     name: 'app/files-to-ignore',
     ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
@@ -18,6 +21,7 @@ export default [
     languageOptions: {
       globals: {
         ...globals.browser,
+        ...globals.node,
       },
     },
   },
@@ -26,3 +30,5 @@ export default [
   ...pluginVue.configs['flat/essential'],
   skipFormatting,
 ]
+
+
