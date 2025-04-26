@@ -67,6 +67,8 @@ export default {
     },
     handleCredentialResponse(response) {
       const user = this.decodeJWT(response.credential);
+      // Adicionar o email ao localStorage
+      localStorage.setItem("userEmail", user.email);
       localStorage.setItem("user", JSON.stringify(user));
       this.$router.push("/");
     },

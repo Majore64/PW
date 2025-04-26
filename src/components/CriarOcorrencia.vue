@@ -18,7 +18,12 @@
         </select>
 
         <label>Email</label>
-        <input v-model="email" type="email" placeholder="exemplo@gmail.com" />
+        <input
+          v-model="email"
+          type="email"
+          placeholder="exemplo@gmail.com"
+          disabled
+        />
 
         <div class="row">
           <div class="col">
@@ -41,9 +46,9 @@
           </div>
 
           <div class="materiais-lista">
-            <span 
-              v-for="mat in materiaisEscolhidos" 
-              :key="mat" 
+            <span
+              v-for="mat in materiaisEscolhidos"
+              :key="mat"
               class="material-tag">
               {{ mat }}
               <button @click="removerMaterial(mat)">❌</button>
@@ -66,7 +71,7 @@
     </button>
   </div>
 </template>
-  
+
   <script setup>
   import { ref, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
@@ -89,6 +94,12 @@
     }
   onMounted(() => {
     tipoSelecionado.value = route.query.tipo || ''
+
+    // Carregar o email do localStorage
+    const userEmail = localStorage.getItem('userEmail')
+    if (userEmail) {
+      email.value = userEmail
+    }
   })
     const tipoSelecionado = ref('')
       const email = ref('')
@@ -132,7 +143,7 @@
       }
   </script>
 
-  
+
   <style scoped>
   .materiais-lista {
   display: flex;
@@ -166,14 +177,14 @@
     padding: 2rem;
     min-height: 100vh;
   }
-  
+
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
   }
-  
+
   .back-button {
     background-color: #1c2d50;
     color: white;
@@ -182,33 +193,33 @@
     padding: 0.5rem 1rem;
     box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.4);
   }
-  
+
   .logo {
     width: 70px;
   }
-  
+
   .content {
     display: flex;
     gap: 2rem;
     flex-wrap: wrap;
   }
-  
+
   .form-left {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .row {
     display: flex;
     gap: 1rem;
   }
-  
+
   .col {
     flex: 1;
   }
-  
+
   textarea,
   input,
   select {
@@ -218,12 +229,12 @@
     border-radius: 8px;
     background-color: #caf0f8;
   }
-  
+
   textarea {
     height: 120px;
     resize: none;
   }
-  
+
   .upload-btn {
     background-color: white;
     border: 1px solid #ccc;
@@ -232,23 +243,23 @@
     cursor: pointer;
     align-self: start;
   }
-  
+
   .map-right {
     flex: 1;
   }
-  
+
   .mapa {
     width: 100%;
     border-radius: 10px;
     object-fit: cover;
   }
-  
+
   .submit-btn-container {
     margin-top: 2rem;
     display: flex;
     justify-content: flex-end;
   }
-  
+
   .submit-btn {
     background-color: #1cd6d6;
     color: rgb(18, 14, 14);
@@ -259,4 +270,3 @@
     cursor: pointer;
   }
   </style>
-  
