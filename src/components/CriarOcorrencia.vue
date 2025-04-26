@@ -27,7 +27,7 @@
 
         <div class="row">
           <div class="col">
-            <label>Zona</label>
+            <label>Zonaa</label>
             <input v-model="zona" type="text" placeholder="Insira zona" />
           </div>
           <div class="col">
