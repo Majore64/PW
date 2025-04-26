@@ -28,14 +28,34 @@ const routes = [
   },
   {
     path: '/login',
-    name: 'Login',
-    component: LoginPage
+    component: EmptyLayout,
+    children: [
+      {
+        path: '',
+        name: 'Login',
+        component: LoginPage,
+      },
+    ],
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  if (to.meta.requiresAuth && !user) {
+    next('/login');
+  }
+  else if (to.path === '/login' && user) {
+    next('/');
+  }
+  else {
+    next();
+  }
 })
 
 export default router

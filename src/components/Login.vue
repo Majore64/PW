@@ -5,8 +5,7 @@
     <p>Faça login para acessar ao EyesEveryWhere.</p>
 
     <!-- Botão Google será renderizado aqui -->
-    <div id="login"></div> <!-- Removido o # do ID -->
-    <button @click="testLogin">Testar Login</button>
+    <div id="googleButton"></div>
   </div>
 </template>
 
@@ -14,12 +13,6 @@
 /* global google */
 
 export default {
-  methods: {
-    testLogin() {
-      console.log("Botão de teste clicado");
-      this.handleCredentialResponse({ credential: "token_de_teste" });
-    }
-  },
   name: "LoginPage",
   data() {
     return {
@@ -37,10 +30,10 @@ export default {
         script.src = "https://accounts.google.com/gsi/client";
         script.async = true;
         script.defer = true;
-        script.onload = this.renderGoogleButton; // Quando o script carregar, chama render
+        script.onload = this.renderGoogleButton; // quando o script carregar, chama render
         document.head.appendChild(script);
       } else {
-        this.renderGoogleButton(); // Já carregado? Então renderiza logo
+        this.renderGoogleButton(); // já carregado? então renderiza logo
       }
     },
     renderGoogleButton() {
@@ -50,7 +43,7 @@ export default {
       });
 
       google.accounts.id.renderButton(
-        document.getElementById("login"), // Corrigido o ID aqui
+        document.getElementById("googleButton"),
         {
           theme: "outline",
           size: "large",
@@ -62,7 +55,7 @@ export default {
     handleCredentialResponse(response) {
       const user = this.decodeJWT(response.credential);
       localStorage.setItem("user", JSON.stringify(user));
-      this.$router.push("/");
+      this.$router.push("/ocorrencias");
     },
     decodeJWT(token) {
       const base64Url = token.split('.')[1];
@@ -75,4 +68,17 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.login {
+  text-align: center;
+  margin-top: 50px;
+}
+#googleButton {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+</style>
+
 
