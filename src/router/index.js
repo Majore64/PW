@@ -4,6 +4,8 @@ import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
 import DetalhesOcorrenciaView from '@/components/DetalhesOcorrenciaView.vue'
+import LoginPage from '@/components/Login.vue'
+
 const routes = [
   {
     path: '/',
