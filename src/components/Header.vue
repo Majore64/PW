@@ -11,7 +11,7 @@
 
     <!-- Direita: Login e Sign Up -->
     <div class="nav-buttons right">
-      <a href="#login" class="nav-btn">Login</a>
+      <button class="nav-btn">Login</button>
       <button class="nav-btn filled">Sign Up</button>
     </div>
   </header>
