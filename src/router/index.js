@@ -27,6 +27,12 @@ const routes = [
     component: HistoricoOcorrenciasView
   },
   {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/login',
     component: EmptyLayout,
     children: [
