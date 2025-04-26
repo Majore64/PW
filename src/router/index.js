@@ -4,7 +4,10 @@ import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
 import DetalhesOcorrenciaView from '@/components/DetalhesOcorrenciaView.vue'
-import LoginPage from '@/components/Login.vue'
+import Login from '@/components/Login.vue'
+
+
+
 
 const routes = [
   {
@@ -32,6 +35,11 @@ const routes = [
     path: '/detalhes/:id', // <-- NOVA ROTA
     name: 'DetalhesOcorrencia',
     component: DetalhesOcorrenciaView
+  },
+  { 
+    path: '/login',
+    name: 'Login',
+    component: Login
   }
   
 ]
