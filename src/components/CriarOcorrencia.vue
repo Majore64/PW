@@ -30,11 +30,30 @@
             <input v-model="andar" type="text" placeholder="Ex: 2º Andar" />
           </div>
         </div>
+                <!-- AQUI ENTRE A ZONA/ANDAR E A DESCRIÇÃO -->
+          <label>Material</label>
+          <div class="row">
+            <select v-model="materialSelecionado">
+              <option disabled value="">Selecionar material</option>
+              <option v-for="mat in materiais" :key="mat">{{ mat }}</option>
+            </select>
+            <button type="button" @click="adicionarMaterial">Adicionar</button>
+          </div>
 
-        <label>Descrição</label>
+          <div class="materiais-lista">
+            <span 
+              v-for="mat in materiaisEscolhidos" 
+              :key="mat" 
+              class="material-tag">
+              {{ mat }}
+              <button @click="removerMaterial(mat)">❌</button>
+            </span>
+          </div>
+                <label>Descrição</label>
         <textarea v-model="descricao" placeholder="Escreva algo..."></textarea>
 
-        <button class="upload-btn">📤 Inserir Imagens</button>
+        <button class="upload-btn" @click="abrirUpload">📤 Inserir Imagem</button>
+          <input type="file" ref="inputFile" style="display: none" @change="handleFile" accept="image/*" />
       </div>
 
       <div class="map-right">
@@ -56,7 +75,18 @@
   const route = useRoute()
   const router = useRouter()
   const store = useOcorrenciasStore()
-  
+  const materiais = ['Luvas', 'Seringas', 'Máscaras', 'Leito', 'Cateter']
+  const materialSelecionado = ref('')
+  const materiaisEscolhidos = ref([])
+
+  function adicionarMaterial() {
+      if (materialSelecionado.value && !materiaisEscolhidos.value.includes(materialSelecionado.value)) {
+        materiaisEscolhidos.value.push(materialSelecionado.value)
+      }
+        }
+        function removerMaterial(material) {
+      materiaisEscolhidos.value = materiaisEscolhidos.value.filter(m => m !== material)
+    }
   onMounted(() => {
     tipoSelecionado.value = route.query.tipo || ''
   })
@@ -65,7 +95,7 @@
       const zona = ref('')
       const andar = ref('')
       const descricao = ref('')
-
+      const imagemSelecionada = ref(null)
 
     // FUNÇÃO PARA GUARDAR NA STORE
       function criarOcorrencia() {
@@ -74,6 +104,8 @@
           email: email.value,
           zona: zona.value,
           andar: andar.value,
+          imagem: imagemSelecionada.value,
+          materiais: materiaisEscolhidos.value,
           descricao: descricao.value,
           data: new Date().toLocaleString()
         }
@@ -83,12 +115,48 @@
         alert('Ocorrência criada com sucesso!')
         router.push('/') // <-- VOLTA PARA HOME OU AJUSTA
       }
+      const inputFile = ref(null)
+       function abrirUpload() {
+          inputFile.value.click()
+        }
 
-
+        function handleFile(event) {
+        const file = event.target.files[0]
+        if (file) {
+          const reader = new FileReader()
+          reader.onload = () => {
+            imagemSelecionada.value = reader.result // guarda imagem como base64
+          }
+          reader.readAsDataURL(file)
+        }
+      }
   </script>
 
   
   <style scoped>
+  .materiais-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.material-tag {
+  background-color: #caf0f8;
+  border: 1px solid #00b4d8;
+  color: black; /* <--- AQUI! texto preto */
+  border-radius: 20px;
+  padding: 0.3rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.material-tag button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #d90429;
+}
   label {
   color: black;
   font-weight: 500;
