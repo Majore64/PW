@@ -14,13 +14,20 @@
         <th>Estado</th>
       </tr>
     </thead>
-      <tbody>
-        <tr v-for="(ocorrencia, index) in store.lista" :key="index">
-          <td class="coluna">{{ ocorrencia.tipo }}</td>
-          <td class="coluna">{{ ocorrencia.zona }}, {{ ocorrencia.andar }}</td>
-          <td class="estado">Por Resolver</td>
-        </tr>
-      </tbody>
+    <tbody>
+          <tr v-for="(ocorrencia, index) in store.lista" :key="index">
+            <td>{{ ocorrencia.tipo }}</td>
+            <td>{{ ocorrencia.email }}</td>
+            <td>{{ ocorrencia.zona }} - {{ ocorrencia.andar }}</td>
+            <td>{{ ocorrencia.estado }}</td>
+            <td>
+              <button @click="$router.push({ name: 'DetalhesOcorrencia', params: { id: index } })">
+                ➔
+              </button>
+            </td>
+          </tr>
+        </tbody>
+
     </table>
   </div>
 </template>
