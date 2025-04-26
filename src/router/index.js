@@ -3,6 +3,7 @@ import HomeView from '@/components/HomeView.vue'
 import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
+import DetalhesOcorrenciaView from '@/components/DetalhesOcorrenciaView.vue'
 import LoginPage from '@/components/Login.vue'
 
 const routes = [
@@ -11,6 +12,7 @@ const routes = [
     name: 'Home',
     component: HomeView
   },
+  
   {
     path: '/tipo-ocorrencia',
     name: 'TipoOcorrencia',
@@ -27,10 +29,11 @@ const routes = [
     component: HistoricoOcorrenciasView
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: LoginPage
+    path: '/detalhes/:id', // <-- NOVA ROTA
+    name: 'DetalhesOcorrencia',
+    component: DetalhesOcorrenciaView
   }
+  
 ]
 
 const router = createRouter({
