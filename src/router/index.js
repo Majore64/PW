@@ -3,6 +3,7 @@ import HomeView from '@/components/HomeView.vue'
 import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
+import LoginPage from '@/components/Login.vue'
 
 const routes = [
   {
@@ -25,6 +26,11 @@ const routes = [
     name: 'Historico',
     component: HistoricoOcorrenciasView
   },
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginPage
+  }
 ]
 
 const router = createRouter({

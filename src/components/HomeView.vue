@@ -18,18 +18,17 @@
           <h2 class="section-title">
             <span class="underline">Quem Somos</span>
           </h2>
+          <br></br>
           <p class="about-text">
             A EyesEverywhere é uma plataforma dedicada ao registo e monitorização de ocorrências em ambientes clínicos e hospitalares, garantindo que problemas como falta de material médico, equipamento avariado e áreas com higiene inadequada sejam rapidamente reportados e solucionados.
-            <br /><br />
             O nosso objetivo é garantir a segurança, organização e qualidade dos espaços de saúde através da participação ativa de profissionais e cidadãos. Com um sistema intuitivo e acessível, qualquer profissional pode registar uma ocorrência, anexar imagens e descrever a situação detalhadamente.
-            <br /><br />
             Esta abordagem facilita a comunicação entre equipas e melhora a qualidade dos serviços de saúde.
           </p>
         </div>
         <img src="@/assets/Sobrenos.png" alt="Profissionais de Saúde" class="about-image" />
       </div>
     </section>
-    
+
     <!-- Indicadores -->
         <section class="stats">
       <div class="stat">
@@ -109,7 +108,7 @@
         <!-- Footer -->
       <Footer />
       </section>
-    
+
   </div>
 </template>
 
@@ -316,7 +315,7 @@ footer {
   text-align: left;
 }
 .hero-text h1 {
-  font-size: 56px; 
+  font-size: 56px;
   font-weight: bold;
   margin: 0;
 }

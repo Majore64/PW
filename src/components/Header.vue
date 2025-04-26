@@ -11,12 +11,22 @@
 
     <!-- Direita: Login e Sign Up -->
     <div class="nav-buttons right">
-      <button class="nav-btn">Login</button>
+      <button @click="goToLogin" class="nav-btn">Login</button>
       <button class="nav-btn filled">Sign Up</button>
     </div>
   </header>
 </template>
 
+<script>
+export default {
+  name: 'Header',
+  methods: {
+    goToLogin() {
+      this.$router.push('/login')
+    }
+  }
+}
+</script>
 
 <style scoped>
 .header {
