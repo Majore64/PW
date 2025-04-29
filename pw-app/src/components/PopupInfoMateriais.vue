@@ -1,60 +1,86 @@
 <template>
-    <div class="popup">
-      <div class="popup-inner">
-        <h2 class="popup-title">Informação Material</h2>
-  
-        <form @submit.prevent="handleSubmit">
-          <div class="form-container">
-            <div class="form-section">
-              <h3>Nome material</h3>
-              <input v-model="form.nomeMaterial" type="text" class="form-input" placeholder="Esfregona" />
-  
-              <h3>Quantidade</h3>
-              <input v-model="form.quantidade" type="number" class="form-input" placeholder="10" />
-            </div>
+  <div class="popup">
+    <div class="popup-inner">
+      <h2 class="popup-title">Informação Material</h2>
+
+      <form @submit.prevent="handleSubmit">
+        <div class="form-container">
+          <div class="form-section">
+            <h3>Nome material</h3>
+            <input v-model="form.nomeMaterial" type="text" class="form-input" placeholder="Esfregona" />
+
+            <h3>Quantidade</h3>
+            <input v-model="form.quantidade" type="number" class="form-input" placeholder="10" />
           </div>
-  
-          <div class="form-actions">
-            <button type="submit" class="npm submit-button">Guardar</button>
-            <button type="button" class="cancel-button" @click="handleDelete()">Eliminar</button>
-          </div>
-        </form>
-  
-        <button class="popup-close" @click="togglePopup()">
-          &times;
-        </button>
-      </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="submit-button">Guardar</button>
+          <button type="button" class="cancel-button" @click="handleDelete">Eliminar</button>
+        </div>
+      </form>
+
+      <button class="popup-close" @click="closePopup">
+        &times;
+      </button>
     </div>
-  </template>
-  
-  
-  <script>
+  </div>
+</template>
+
+<script>
 export default {
-  name: "PopupModal",
-  props: ['togglePopup'],
+  name: "PopupInfoMateriais",
+  props: {
+    togglePopup: {
+      type: Function,
+      required: true
+    },
+    material: {
+      type: Object,
+      required: true
+    }
+  },
   data() {
     return {
       form: {
         nomeMaterial: '',
-        quantidade: '',
+        quantidade: ''
+      }
+    };
+  },
+  watch: {
+    material: {
+      immediate: true,
+      handler(novoMaterial) {
+        if (novoMaterial) {
+          this.form.nomeMaterial = novoMaterial.nome;
+          this.form.quantidade = novoMaterial.quantidade;
+        }
       }
     }
   },
   methods: {
     handleSubmit() {
       console.log("Material guardado:", this.form);
-      this.togglePopup();
+      this.closePopup();
     },
     handleDelete() {
-        console.log("Material eliminado", this.form);
+      console.log("Material eliminado:", this.form);
+      this.closePopup();
+    },
+    closePopup() {
+      if (typeof this.togglePopup === 'function') {
         this.togglePopup();
+      } else {
+        console.warn("togglePopup não é uma função.");
+      }
     }
   }
-}
+};
 </script>
 
   
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
   .popup {
     position: fixed;
     top: 0;

@@ -222,7 +222,7 @@ export default {
       this.paginaAtual = 1;
     },
     verPerfil(ocorrencia) {
-      this.$router.push({ name: 'Perfil', params: { id: ocorrencia.id } });
+      this.$router.push({ name: 'OcorrenciaPerfil', params: { id: ocorrencia.id } });
     },
     proximaPagina() {
       if (this.paginaAtual < this.totalPaginas) {

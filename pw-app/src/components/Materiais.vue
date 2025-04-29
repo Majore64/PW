@@ -1,6 +1,5 @@
 <template>
   <div class="page-content">
-    
     <!-- Filtros como abas horizontais -->
     <div class="tabs-container">
       <div class="tabs">
@@ -21,6 +20,7 @@
           v-model="termoPesquisa" 
           placeholder="Pesquisar por nome ou número..." 
           class="search-input"
+          @keyup.enter="pesquisar"
         >
         <button @click="pesquisar" class="search-btn">
           <span class="material-icons">search</span>
@@ -41,11 +41,11 @@
             <th>Quantidade</th>
             <th>Estado</th>
             <th>Quantidade Restante</th>
-            <th></th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="material in materialFiltrados" :key="material.id">
+          <tr v-for="material in materiaisFiltrados" :key="material.id">
             <td>{{ material.nome }}</td>
             <td>{{ material.quantidade }}</td>
             <td>
@@ -53,9 +53,9 @@
                 {{ material.estado }}
               </span>
             </td>
-            <td>{{ material.estado.toLowerCase().includes('disponivel') ? material.quantidade : material.quantRest }}</td>
-            <td>
-              <button @click="verInfo(material)" class="action-btn">
+            <td>{{ material.estado.toLowerCase().includes('disponivel') ? '-----' : material.quantRest }}</td>
+            <td class="actions-cell">
+              <button @click="verInfo(material)" class="action-btn" title="Editar">
                 <span class="material-icons">more_vert</span>
               </button>
             </td>
@@ -81,29 +81,52 @@
         <span class="material-icons">chevron_right</span>
       </button>
     </div>
+
+    <PopupAdicionarMaterial
+      v-if="showPopupAdicionarMaterial" 
+      :togglePopup="togglePopupAdicionarMaterial"
+    />
+
+    <PopupInfoMateriais
+      v-if="showPopupInfoMateriais" 
+      :togglePopup="togglePopupInfoMateriais"
+      :material="materialSelecionado"
+    />
   </div>
 </template>
 
 <script>
+import PopupAdicionarMaterial from './PopupAdicionarMaterial.vue';
+import PopupInfoMateriais from './PopupInfoMateriais.vue';
+
 export default {
   name: 'MateriaisPage',
+  components: {
+    PopupAdicionarMaterial,
+    PopupInfoMateriais,
+  },
   data() {
     return {
       termoPesquisa: '',
       filtroAtivo: 'todos',
+      showPopupAdicionarMaterial: false,
+      showPopupInfoMateriais: false,
       paginaAtual: 1,
       itensPorPagina: 10,
-      material: [
-        { id: 1, nome: 'Estetoscópio', quantidade: '50', estado: 'Disponivel', quantRest: '-----' },
+      materialSelecionado: null,
+      materiais: [
+        { id: 1, nome: 'Estetoscópio', quantidade: '50', estado: 'Disponivel', quantRest: '0' },
         { id: 2, nome: 'Medidor de tensão', quantidade: '20', estado: 'Alocado', quantRest: '18' },
         { id: 3, nome: 'Esfregona', quantidade: '10', estado: 'Alocado', quantRest: '9' },
         { id: 4, nome: 'Detergente', quantidade: '15', estado: 'Alocado', quantRest: '14' },
-        { id: 5, nome: 'Balança', quantidade: '20', estado: 'Disponivel', quantRest: '-----' },
-        { id: 6, nome: 'Impressora', quantidade: '10', estado: 'Disponivel', quantRest: '-----' },
-        { id: 7, nome: 'Batas médicas', quantidade: '50', estado: 'Disponivel', quantRest: '-----' },
-        { id: 8, nome: 'Seringas', quantidade: '100', estado: 'Disponivel', quantRest: '-----' },
-        { id: 9, nome: 'Bolsas de esterilização', quantidade: '150', estado: 'Disponivel', quantRest: '-----' },
-        { id: 10, nome: 'Luvas cirurgicas', quantidade: '200', estado: 'Disponivel', quantRest: '-----' },
+        { id: 5, nome: 'Balança', quantidade: '20', estado: 'Disponivel', quantRest: '0' },
+        { id: 6, nome: 'Impressora', quantidade: '10', estado: 'Disponivel', quantRest: '0' },
+        { id: 7, nome: 'Batas médicas', quantidade: '50', estado: 'Disponivel', quantRest: '0' },
+        { id: 8, nome: 'Seringas', quantidade: '100', estado: 'Disponivel', quantRest: '0' },
+        { id: 9, nome: 'Bolsas de esterilização', quantidade: '150', estado: 'Disponivel', quantRest: '0' },
+        { id: 10, nome: 'Luvas cirurgicas', quantidade: '200', estado: 'Disponivel', quantRest: '0' },
+        { id: 11, nome: 'Termómetro', quantidade: '30', estado: 'Disponivel', quantRest: '0' },
+        { id: 12, nome: 'Máscaras', quantidade: '500', estado: 'Alocado', quantRest: '450' },
       ],
       tabs: [
         { id: 'todos', label: 'Todos Materiais' },
@@ -113,28 +136,32 @@ export default {
     };
   },
   computed: {
-    materialFiltrados() {
-      let filtrados = [...this.material];
+    materiaisFiltrados() {
+      let filtrados = [...this.materiais];
 
+      // Aplicar filtro por estado
       if (this.filtroAtivo === 'disponiveis') {
         filtrados = filtrados.filter(m => m.estado.toLowerCase().includes('disponivel'));
       } else if (this.filtroAtivo === 'indisponiveis') {
         filtrados = filtrados.filter(m => m.estado.toLowerCase().includes('alocado'));
       }
 
-      if (this.termoPesquisa) {
+      // Aplicar pesquisa
+      if (this.termoPesquisa.trim()) {
         const termo = this.termoPesquisa.toLowerCase();
         filtrados = filtrados.filter(m =>
           m.nome.toLowerCase().includes(termo) || 
-          m.quantidade.toLowerCase().includes(termo)
+          m.quantidade.toString().includes(termo) ||
+          m.id.toString().includes(termo)
         );
       }
 
+      // Paginação
       const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
       return filtrados.slice(inicio, inicio + this.itensPorPagina);
     },
     totalPaginas() {
-      let total = [...this.material];
+      let total = [...this.materiais];
 
       if (this.filtroAtivo === 'disponiveis') {
         total = total.filter(m => m.estado.toLowerCase().includes('disponivel'));
@@ -142,11 +169,12 @@ export default {
         total = total.filter(m => m.estado.toLowerCase().includes('alocado'));
       }
 
-      if (this.termoPesquisa) {
+      if (this.termoPesquisa.trim()) {
         const termo = this.termoPesquisa.toLowerCase();
         total = total.filter(m =>
           m.nome.toLowerCase().includes(termo) || 
-          m.quantidade.toLowerCase().includes(termo)
+          m.quantidade.toString().includes(termo) ||
+          m.id.toString().includes(termo)
         );
       }
 
@@ -154,14 +182,22 @@ export default {
     }
   },
   methods: {
+    togglePopupAdicionarMaterial() {
+      this.showPopupAdicionarMaterial = !this.showPopupAdicionarMaterial;
+    },
     pesquisar() {
       this.paginaAtual = 1;
     },
+    togglePopupInfoMateriais() {
+      this.showPopupInfoMateriais = !this.showPopupInfoMateriais;
+    },
     verInfo(material) {
-      console.log('Editar Material');
+      console.log('Material selecionado:', material);
+      this.materialSelecionado = material;
+      this.togglePopupInfoMateriais();
     },
     adicionarMaterial() {
-      console.log('Adicionar Material');
+      this.togglePopupAdicionarMaterial();
     },
     proximaPagina() {
       if (this.paginaAtual < this.totalPaginas) {
@@ -221,6 +257,7 @@ export default {
   border-radius: 4px 4px 0 0;
   cursor: pointer;
   font-size: 0.9em;
+  transition: all 0.3s ease;
 }
 
 .tabs button.active {
@@ -229,22 +266,33 @@ export default {
   font-weight: bold;
 }
 
+.tabs button:hover:not(.active) {
+  background-color: #e0e0e0;
+}
+
 .search-wrapper {
   display: flex;
   align-items: center;
   flex-grow: 1;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .search-input {
-  padding: 8px;
+  padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1em;
-  width: 250px; 
+  width: 250px;
+  transition: border 0.3s ease;
 }
 
-.search-btn {
+.search-input:focus {
+  outline: none;
+  border-color: #03B5AA;
+}
+
+.search-btn, .add-btn {
   background-color: #03B5AA;
   color: white;
   border: none;
@@ -252,52 +300,39 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-}
-
-.search-btn:hover {
-  opacity: 0.9;
-}
-
-.add-btn {
-  background-color: #03B5AA;
-  color: white;
-  border: none;
+  padding: 8px 12px;
   border-radius: 4px;
-  margin-left: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.search-btn:hover, .add-btn:hover {
+  opacity: 0.9;
 }
 
 .material-icons {
-  font-size: 24px; 
-}
-
-.add-btn:hover {
-  opacity: 0.9;
+  font-size: 24px;
 }
 
 .table-container {
   overflow-x: auto;
   width: 100%;
   margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
 }
 
 .materiais-table {
   table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px; /* Largura mínima para evitar compressão */
+  min-width: 800px;
 }
 
-.materiais-table th:nth-child(1) { width: 20%; }
-.materiais-table th:nth-child(2) { width: 25%; }
-.materiais-table th:nth-child(3) { width: 30%; }
+.materiais-table th:nth-child(1) { width: 25%; }
+.materiais-table th:nth-child(2) { width: 15%; }
+.materiais-table th:nth-child(3) { width: 20%; }
 .materiais-table th:nth-child(4) { width: 20%; }
-.materiais-table th:nth-child(5) { width: 5%; }
+.materiais-table th:nth-child(5) { width: 20%; }
 
 .materiais-table th, .materiais-table td {
   padding: 12px 15px;
@@ -313,6 +348,7 @@ export default {
   font-weight: bold;
   position: sticky;
   top: 0;
+  color: #333;
 }
 
 .materiais-table tr:hover {
@@ -330,17 +366,23 @@ export default {
 }
 
 .estado-badge.disponivel {
-  color: #4CAF50;
-  border: 1px solid #4CAF50;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
 }
 
 .estado-badge.alocado {
-  color: #FF9800;
-  border: 1px solid #FF9800;
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 5px;
 }
 
 .action-btn {
-  margin-right: 5px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -351,10 +393,15 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 8px;
+  transition: opacity 0.3s ease;
 }
 
 .action-btn:hover {
   opacity: 0.9;
+}
+
+.action-btn.info-btn {
+  background-color: #03B5AA;
 }
 
 .pagination {
@@ -367,7 +414,7 @@ export default {
 
 .pagination button {
   height: 36px;
-  width: 36px;
+  min-width: 36px;
   padding: 8px 12px;
   border: 1px solid #03B5AA;
   background-color: white;
@@ -377,12 +424,11 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  transition: all 0.3s ease;
 }
 
 .pagination button:hover:not(:disabled) {
-  background-color: #f5f5f5;
-  color: #03B5AA;
+  background-color: #f0f9f9;
 }
 
 .pagination button:disabled {
@@ -394,5 +440,6 @@ export default {
   background-color: #03B5AA;
   color: white;
   border-color: #03B5AA;
+  font-weight: bold;
 }
 </style>

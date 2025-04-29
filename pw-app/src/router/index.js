@@ -8,6 +8,8 @@ import Estatisticas from "@/components/Estatisticas.vue";
 import Historico from "@/components/Historico.vue";
 import Definicoes from "@/components/Definicoes.vue";
 import Perfil from '@/components/Perfil.vue';
+import OcorrenciaPerfil from '@/components/OcorrenciaPerfil.vue';
+import Materiais from '@/components/Materiais.vue';
 
 const routes = [
   {
@@ -54,6 +56,18 @@ const routes = [
         path: '/funcionarios/:id',
         name: 'Perfil',
         component: Perfil,
+        props: true
+      },
+      {
+        path: '/ocorrencia/:id',
+        name: 'OcorrenciaPerfil',
+        component: OcorrenciaPerfil,
+        props: true
+      },
+      {
+        path: '/materiais',
+        name: 'Materiais',
+        component: Materiais,
         props: true
       },
     ],

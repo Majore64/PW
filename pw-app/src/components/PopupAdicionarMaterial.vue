@@ -42,11 +42,9 @@ export default {
   },
   methods: {
     handleSubmit() {
-      // Aqui podes enviar os dados para uma API ou consola
-      console.log("Dados submetidos:", this.form);
-
-      // Após o envio, podes limpar o formulário ou fechar o popup
+      this.$emit('material-adicionado', this.form);
       this.togglePopup();
+      this.form = { nomeMaterial: '', quantidade: '' }; // Limpa o formulário
     }
   }
 }

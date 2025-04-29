@@ -26,7 +26,7 @@
           <span class="material-icons">search</span>
         </button>
         <!-- Botão de adicionar -->
-        <button @click="adicionarFuncionario" class="add-btn">
+        <button @click="abrirPopup" class="add-btn">
           <span class="material-icons">add</span>
         </button>
       </div>
@@ -73,14 +73,27 @@
       </span>
       <button @click="proximaPagina" :disabled="paginaAtual === totalPaginas">Próxima</button>
     </div>
+
+    <!-- O Popup -->
+    <FuncionarioPopup 
+      v-if="mostrarPopup" 
+      @fechar="fecharPopup" 
+      @guardar="guardarFuncionario"
+    />
   </div>
 </template>
 
 <script>
+import FuncionarioPopup from './FuncionarioPopup.vue';
+
 export default {
   name: 'FuncionariosPage',
+  components: {
+    FuncionarioPopup, 
+  },
   data() {
     return {
+      mostrarPopup: false,
       termoPesquisa: '',
       filtroAtivo: 'todos',
       paginaAtual: 1,
@@ -161,8 +174,17 @@ export default {
     verPerfil(funcionario) {
       this.$router.push({ name: 'Perfil', params: { id: funcionario.id } });
     },
-    adicionarFuncionario() {
-      console.log('Adicionar Novo Funcionário');
+    abrirPopup() {
+      this.mostrarPopup = true; 
+    },
+    fecharPopup() {
+      this.mostrarPopup = false; 
+    },
+    guardarFuncionario(novoFuncionario) {
+      this.funcionarios.push({
+        id: this.funcionarios.length + 1,
+        ...novoFuncionario
+      });
     },
     proximaPagina() {
       if (this.paginaAtual < this.totalPaginas) {
