@@ -129,6 +129,12 @@
           </table>
         </div>
 
+        <div class="pagination">
+          <button>&lt; Previous</button>
+          <button v-for="n in 4" :key="n" :class="{ active: n === 1 }">{{ n }}</button>
+          <button>Next &gt;</button>
+        </div>
+
         <div class="alocacao-campos">
         <div class="campo-item">
           <label>Localização *</label>
@@ -173,11 +179,7 @@
       </div>
 
   
-        <div class="pagination">
-          <button>&lt; Previous</button>
-          <button v-for="n in 4" :key="n" :class="{ active: n === 1 }">{{ n }}</button>
-          <button>Next &gt;</button>
-        </div>
+        
       </div>
   
       <!-- Rodapé -->
