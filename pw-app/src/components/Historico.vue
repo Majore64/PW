@@ -79,21 +79,13 @@
 </template>
 
 <script>
-import PopupModal from './popup.vue';
 
 export default {
 name: 'OcorrenciasPage',
 
-components: {
-  PopupModal
-},
 
 data() {
   return {
-
-    popupTriggers: {
-      buttonTrigger: false,
-    },
 
     termoPesquisa: '',
     filtroAtivo: 'todos',
@@ -191,9 +183,6 @@ methods: {
   irParaPagina(n) {
     this.paginaAtual = n;
   },
-  togglePopup(trigger) {
-    this.popupTriggers[trigger] = !this.popupTriggers[trigger];
-  }
 },
 mounted() {
   this.$emit('update-title', 'Histórico');
