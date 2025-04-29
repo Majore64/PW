@@ -82,14 +82,16 @@ export default {
   }
   
   .popup-inner {
-    background-color: white;
-    padding: 32px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    min-width: 700px; 
-    min-height: 100px;
-    max-height: 90vh;
-    position: relative;
+  background-color: white;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  min-width: 1000px;
+  height: auto; /* Ajuste para a altura automática */
+  max-height: 90vh; /* Limita a altura máxima */
+  display: flex;
+  flex-direction: column; /* Faz a disposição do conteúdo em coluna */
+  justify-content: space-between; /* Distribui espaço entre o conteúdo e os botões */
   }
   
   .popup-title {
