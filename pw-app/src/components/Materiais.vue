@@ -53,7 +53,7 @@
                 {{ material.estado }}
               </span>
             </td>
-            <td>{{ material.estado.toLowerCase().includes('disponivel') ? '-----' : material.quantRest }}</td>
+            <td>{{ material.estado.toLowerCase().includes('disponivel') ? material.quantidade : material.quantRest }}</td>
             <td class="actions-cell">
               <button @click="verInfo(material)" class="action-btn" title="Editar">
                 <span class="material-icons">more_vert</span>
