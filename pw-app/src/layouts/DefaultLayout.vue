@@ -20,6 +20,9 @@
           <router-link to="/historico" class="nav-link">Histórico</router-link>
         </li>
         <li class="nav-item">
+          <router-link to="/materiais" class="nav-link">Materiais</router-link>
+        </li>
+        <li class="nav-item">
           <router-link to="/definicoes" class="nav-link">Definições</router-link>
         </li>
       </ul>
