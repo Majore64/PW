@@ -1,78 +1,123 @@
 <script setup>
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const name = ref('')
+const email = ref('')
+const birthdate = ref('')
+const phone = ref('')
+const address = ref('')
+
+onMounted(() => {
+  const storedUser = localStorage.getItem('user')
+  if (storedUser) {
+    const parsed = JSON.parse(storedUser)
+    name.value = parsed.name || ''
+    email.value = parsed.email || ''
+    birthdate.value = parsed.birthdate || ''
+    phone.value = parsed.phone || ''
+    address.value = parsed.address || ''
+  }
+})
+
+function prefillPhone() {
+  if (!phone.value) {
+    phone.value = '+351 '
+  }
+}
+
+function saveChanges() {
+  if (!name.value.trim() || !email.value.trim()) {
+    alert('Por favor, preencha o nome e o email!')
+    return
+  }
+  if (!email.value.includes('@')) {
+    alert('Por favor, insira um email válido!')
+    return
+  }
+
+  const existing = JSON.parse(localStorage.getItem('user')) || {}
+  const updated = {
+    ...existing,
+    name: name.value,
+    email: email.value,
+    birthdate: birthdate.value,
+    phone: phone.value,
+    address: address.value,
+    picture: existing.picture || ''
+  }
+  localStorage.setItem('user', JSON.stringify(updated))
+  router.push('/perfil')
+}
 </script>
 
-
 <template>
-<!-- Cabeçalho (opcional) -->
-<div class="top-bar" style="background-color: #93E5E0; height: 70px;">
-    <img 
-      src="@/assets/images/logo.png" 
-      alt="Logo"
-      style="height: 60px; display: block; margin: 0 auto; padding-top: 10px;"
-    >
+  <!-- Cabeçalho -->
+  <div class="top-bar" style="background-color: #93E5E0; height: 70px;">
+    <img src="@/assets/images/logo.png" alt="Logo"
+         style="height: 60px; display: block; margin: 0 auto; padding-top: 10px;">
   </div>
 
-  <!-- Botão back -->
+  <!-- Botão voltar -->
   <div class="d-flex justify-content-around mb-5 mt-4" style="width: 30%;">
-    <button class="btn p-0 d-flex gap-2" @click="$router.push('/perfil')">
-       <i class="bi bi-arrow-left"></i>
-       <span>Perfil</span>
+    <button class="btn p-0 d-flex gap-2" @click="router.push('/perfil')">
+      <i class="bi bi-arrow-left"></i>
+      <span>Perfil</span>
     </button>
   </div>
 
+  <!-- Ícone de perfil -->
   <div class="d-flex justify-content-center align-items-center" style="width: 100%; height: 100px;">
-  <i class="bi bi-person-fill text-secondary" style="font-size: 8rem;"></i>
-</div>
-  
-<!-- Dados do cliente -->
-<div class="card p-4 mx-auto" style="max-width: 600px;">
-    <!-- Linha 1: Número de Cliente e NIF -->
-    <div class="d-flex justify-content-between mb-4">
-      <div>
-        <p class="mb-1 text-muted">Número de Cliente</p>
-        <p class="fw-bold">XXXXX</p>
-      </div>
-      <div>
-        <p class="mb-1 text-muted">NIF</p>
-        <p class="fw-bold">XXXXXXXXXX</p>
-      </div>
-    </div>
+    <i class="bi bi-person-fill text-secondary" style="font-size: 8rem;"></i>
+  </div>
 
-    <!-- Linha 2: Data de Nascimento e SNS -->
-    <div class="d-flex justify-content-between mb-4">
-      <div>
-        <p class="mb-1 text-muted">Data de Nascimento</p>
-        <p class="fw-bold">XX / XX / XXXX</p>
-      </div>
-      <div>
-        <p class="mb-1 text-muted">SNS</p>
-        <p class="fw-bold">XXXXXXXXXX</p>
-      </div>
-    </div>
-
-    <!-- Demais campos (uma coluna) -->
-    <div class="mb-1">
-      <p class="mb-1 text-muted">Contacto</p>
-      <p class="fw-bold">XXXXXXXXX</p>
-    </div>
-
-    <div class="mb-2">
+  <!-- Formulário -->
+  <div class="card p-4 mx-auto" style="max-width: 600px;">
+    <!-- Nome -->
+    <div class="mb-3">
       <p class="mb-1 text-muted">Nome</p>
-      <p class="fw-bold">Exemplo</p>
+      <input type="text" class="form-control" v-model="name" />
     </div>
 
-    <div class="mb-2">
+    <!-- Email -->
+    <div class="mb-3">
       <p class="mb-1 text-muted">Email</p>
-      <p class="fw-bold">exemplo@gmail.com</p>
+      <input type="email" class="form-control" v-model="email" />
     </div>
 
-    <div class="mb-2">
+    <!-- Data de Nascimento -->
+    <div class="mb-3">
+      <p class="mb-1 text-muted">Data de Nascimento</p>
+      <input type="text" class="form-control" v-model="birthdate" placeholder="DD/MM/AAAA" />
+    </div>
+
+    <!-- Contacto -->
+    <div class="mb-3">
+      <p class="mb-1 text-muted">Contacto</p>
+      <input 
+        type="text" 
+        class="form-control" 
+        v-model="phone" 
+        @focus="prefillPhone"
+        placeholder="+351 XXXXXXXXX"
+      />
+    </div>
+
+    <!-- Morada -->
+    <div class="mb-3">
       <p class="mb-1 text-muted">Morada</p>
-      <p class="fw-bold">Rua exemplo Nº XXX</p>
+      <input type="text" class="form-control" v-model="address" />
     </div>
 
-    <button class="btn btn-primary w-100 py-2">Aplicar Alterações</button>
+    <!-- Botão guardar -->
+    <button class="btn btn-primary w-100 py-2" @click="saveChanges">Aplicar Alterações</button>
   </div>
 </template>
+
+<style scoped>
+.container {
+  max-width: 600px;
+}
+</style>
