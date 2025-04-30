@@ -1,0 +1,136 @@
+<template>
+  <div class="visualizar-view bg-light min-vh-100">
+    <!-- Cabeçalho -->
+    <div class="top-bar" style="background-color: #93E5E0; height: 70px;">
+      <img 
+        src="@/assets/images/logo.png" 
+        alt="Logo"
+        style="height: 60px; display: block; margin: 0 auto; padding-top: 10px;"
+      >
+    </div>
+
+    <!-- Botão Voltar -->
+    <div class="container-fluid mt-3">
+      <button @click="$router.go(-1)" class="btn btn-link text-dark text-decoration-none ps-3">
+        ← Voltar
+      </button>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="container my-4">
+      <div class="border border-secondary rounded-3 bg-white shadow-sm overflow-hidden">
+        <!-- Conteúdo -->
+        <div class="p-3">
+          <!-- Título -->
+          <h2 class="text-center mb-4 text-secondary">{{ formattedType }}</h2>
+
+          <!-- Informações Básicas -->
+          <div class="mb-4 px-3">
+            <p class="mb-2"><strong>Alerta dado por:</strong> {{ occurrence.createdByName }}</p>
+            <p class="mb-2"><strong>Data da ocorrência:</strong> {{ formattedDate }}</p>
+            <p class="mb-0"><strong>Localização:</strong> {{ occurrence.location }}</p>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Descrição -->
+          <div class="bg-secondary rounded-3 overflow-hidden">
+            <div class="p-3">
+              <h5 class="mb-3 text-white position-relative pb-2">
+                Descrição
+                <span class="position-absolute bottom-0 start-0 w-100 border-bottom border-dark"></span>
+              </h5>
+            </div>
+            <div class="p-3 pt-0 text-white" style="min-height: 100px; max-height: 300px; overflow-y: auto;">
+              <p class="mb-0">{{ occurrence.description || "Sem descrição" }}</p>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Status -->
+          <div class="text-center">
+            <span 
+              class="badge rounded-pill fs-6 px-3 py-2"
+              :class="statusClass"
+            >
+              {{ formattedStatus }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
+
+const route = useRoute();
+const store = useOccurrencesStore();
+
+const occurrence = computed(() => store.getOccurrenceById(route.params.id));
+
+const formattedType = computed(() => {
+  const types = {
+    'falta_material': 'Falta de Material',
+    'local_sujo': 'Local Sujo',
+    'equipamento_danificado': 'Equipamento Danificado',
+    'material_fora_lugar': 'Material Fora do Lugar'
+  };
+  return types[occurrence.value?.type] || occurrence.value?.type;
+});
+
+const formattedDate = computed(() => {
+  if (!occurrence.value?.createdAt) return '';
+  const date = new Date(occurrence.value.createdAt);
+  return date.toLocaleDateString('pt-PT', { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+});
+
+const formattedStatus = computed(() => {
+  return occurrence.value?.status === 'pending' ? 'PENDENTE' : 'RESOLVIDO';
+});
+
+const statusClass = computed(() => {
+  return occurrence.value?.status === 'pending' 
+    ? 'bg-warning-subtle text-warning-emphasis'  // Amarelo bonito
+    : 'bg-success-subtle text-success';
+});
+</script>
+
+<style scoped>
+.top-bar {
+  background-color: #93E5E0;
+}
+
+.btn-link {
+  transition: all 0.2s;
+}
+.btn-link:hover {
+  transform: translateX(-2px);
+}
+
+/* Barra de rolagem personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #5cbdb9;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4aa8a5;
+}
+</style>

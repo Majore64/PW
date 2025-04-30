@@ -19,10 +19,13 @@ export const useOccurrencesStore = defineStore('occurrences', {
         this.occurrences.push(newOccurrence)
         localStorage.setItem('occurrences', JSON.stringify(this.occurrences))
       },
-      // ... outros métodos permanecem iguais
+      
     },
     getters: {
-      // Atualize os getters para usar createdBy (que agora é o ID)
+     
+      getOccurrenceById: (state) => (id) => {
+        return state.occurrences.find(o => o.id === Number(id)); // Converte para Number pois o ID da rota é string
+      },
       userOccurrences: (state) => (userId) => {
         return state.occurrences.filter(o => o.createdBy === userId)
       },

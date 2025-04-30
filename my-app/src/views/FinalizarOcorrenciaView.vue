@@ -36,7 +36,7 @@ import { useRouter } from 'vue-router'
                     <h5 class="text-white m-0" style="font-size: 15px;">Material Fora do Lugar</h5>
                     <h5 class="text-accent m-0" style="font-size: 15px;">Nome</h5>
                 </div>
-            <button class="btn text-black fw-medium rounded-3 ms-auto" style="background-color: #93E5E0;" @click="$router.push('/vizualizar')">Vizualizar</button>
+            <button class="btn text-black fw-medium rounded-3 ms-auto" style="background-color: #93E5E0;" @click="$router.push('/visualizar')">Visualizar</button>
         </div>
     </div>
 
