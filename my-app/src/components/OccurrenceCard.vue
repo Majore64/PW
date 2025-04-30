@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="occurrence-card rounded-4 bg-secondary m-2 mt-3  "
+    class="occurrence-card rounded-4 bg-secondary m-2 mt-3"
     @click="handleClick"
   >
     <div class="card-body p-2 d-flex align-items-center">
@@ -8,9 +8,9 @@
       <i :class="typeIcon" class="fs-1 text-white ps-2 pe-3"></i>
       
       <!-- Textos -->
-      <div>
-        <h5 class="text-white fs-4 fw-normal m-0">{{ formattedType }}</h5>
-        <h5 class="text-white fs-6 fw-light m-0">{{ occurrence.location }}</h5> <!-- fw-light para fonte mais fina -->
+      <div class="text-nowrap overflow-hidden">
+        <h5 class="text-white fs-5 fw-normal m-0 text-truncate">{{ formattedType }}</h5>
+        <h5 class="text-white fs-6 fw-light m-0">{{ occurrence.location }}</h5>
       </div>
     </div>
   </div>
@@ -37,10 +37,10 @@ export default {
     },
     formattedType() {
       const types = {
-        'falta_material': 'Falta de Material Médico',
+        'falta_material': 'Falta Material',
         'local_sujo': 'Local Sujo',
-        'equipamento_danificado': 'Equipamento Danificado',
-        'material_fora_lugar': 'Material Fora do Lugar'
+        'equipamento_danificado': 'Equip. Danificado', // Texto reduzido
+        'material_fora_lugar': 'Material Fora Lugar'
       }
       return types[this.occurrence.type] || this.occurrence.type
     }
@@ -61,6 +61,7 @@ export default {
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  min-width: 280px;
 }
 
 .occurrence-card:hover {
@@ -68,8 +69,14 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Ajuste fino no alinhamento vertical */
 .card-body {
   padding: 0.6rem 0.5rem !important;
+  width: 100%;
 }
-</style>  
+
+.text-nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
