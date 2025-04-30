@@ -41,8 +41,8 @@ const routes = [
     component: PerfilView
   },
   {
-    path: '/editar-perfil',
-    name: 'editar-perfil',
+    path: '/editar',
+    name: 'editar',
     component: EditarPerfilView
   },
   {
