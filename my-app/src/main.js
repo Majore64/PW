@@ -12,5 +12,5 @@ const pinia = createPinia();
 
 // Use o router e o pinia na instância do app
 app.use(router);
-app.use(pinia); // ⚠️ Isso estava faltando!
+app.use(pinia); 
 app.mount('#app');
