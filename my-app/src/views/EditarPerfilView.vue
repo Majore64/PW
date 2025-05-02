@@ -4,12 +4,14 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// Campos editáveis
 const name = ref('')
 const email = ref('')
 const birthdate = ref('')
 const phone = ref('')
 const address = ref('')
 
+// Quando o componente for montado, recupera os dados do user armazenados no localStorage
 onMounted(() => {
   const storedUser = localStorage.getItem('user')
   if (storedUser) {
@@ -22,12 +24,14 @@ onMounted(() => {
   }
 })
 
+// Função para garantir que o telefone comece com "+351 "
 function prefillPhone() {
   if (!phone.value) {
     phone.value = '+351 '
   }
 }
 
+// Função para salvar as alterações feitas
 function saveChanges() {
   if (!name.value.trim() || !email.value.trim()) {
     alert('Por favor, preencha o nome e o email!')
@@ -48,7 +52,11 @@ function saveChanges() {
     address: address.value,
     picture: existing.picture || ''
   }
+  
+  // Salvando os dados no localStorage
   localStorage.setItem('user', JSON.stringify(updated))
+
+  // Redireciona para o perfil
   router.push('/perfil')
 }
 </script>

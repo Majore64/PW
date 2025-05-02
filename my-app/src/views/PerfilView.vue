@@ -3,11 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
 const user = ref({
   name: '',
   email: '',
-  imageUrl: '',
-  role: 'Médico'
+  imageUrl: ''
 })
 
 onMounted(() => {
@@ -24,14 +24,11 @@ onMounted(() => {
 <template>
   <!-- Cabeçalho -->
   <div class="top-bar" style="background-color: #93E5E0; height: 70px;">
-    <img 
-      src="@/assets/images/logo.png" 
-      alt="Logo"
-      style="height: 60px; display: block; margin: 0 auto; padding-top: 10px;"
-    >
+    <img src="@/assets/images/logo.png" alt="Logo"
+         style="height: 60px; display: block; margin: 0 auto; padding-top: 10px;">
   </div>
 
-  <!-- Botão back -->
+  <!-- Botão voltar -->
   <div class="d-flex justify-content-around mb-5 mt-4" style="width: 50%;">
     <button class="btn p-0 d-flex gap-2" @click="router.push('/dashboard')">
       <i class="bi bi-arrow-left"></i>
@@ -47,13 +44,12 @@ onMounted(() => {
   </div>
 
   <!-- Perfil -->
-  <div class="d-flex align-items-center" style="width: 100%; height: 200px; position: relative;">
-    <!-- Foto de perfil (ou ícone se não existir) -->
+  <div class="d-flex align-items-center ms-3" style="width: 100%; height: 200px; position: relative;">
     <img 
       v-if="user.imageUrl" 
       :src="user.imageUrl" 
       alt="User Image" 
-      style="height: 120px; width: 120px; border-radius: 50%; margin-right: 2rem;" 
+      style="height: 105px; width: 105px; border-radius: 100%; margin-right: 1rem;" 
     />
     <i 
       v-else 
@@ -63,8 +59,7 @@ onMounted(() => {
 
     <div class="d-flex flex-column">
       <span class="fs-4 fw-bold">{{ user.name }}</span>
-      <span class="fs-5">{{ user.role }}</span>
-      <span class="fs-5">{{ user.email }}</span>
+      <span class="fs-5">{{ user.email }}</span> <!-- Aqui agora fica o email -->
     </div>
   </div>
 
