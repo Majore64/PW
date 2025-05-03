@@ -11,19 +11,29 @@
 
     <!--Texto -->
     <div class="content">
-      <h1 class="text-center my-5 fs-2 text-secondary" style="font-family: 'Catamaran', sans-serif; font-weight: 900;">OCORRÊNCIAS PENDENTES</h1>
+      <h1 class="text-center my-5 fs-2 text-secondary" style="font-family: 'Catamaran', sans-serif; font-weight: 900;">
+        OCORRÊNCIAS PENDENTES
+      </h1>
     </div>
      
     <!-- Cards dinâmicos -->
     <div class="occurrences-container mx-4">
-      <OccurrenceCard 
-        v-for="occurrence in oldestOccurrences" 
-        :key="occurrence.id" 
-        :occurrence="occurrence"
-      />
+      <template v-if="oldestOccurrences && oldestOccurrences.length">
+        <OccurrenceCard 
+          v-for="occurrence in oldestOccurrences" 
+          :key="occurrence.id" 
+          :occurrence="occurrence"
+        />
+      </template>
+      <template v-else>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-check-circle fs-1"></i>
+          <p class="mt-2">Nenhuma ocorrência pendente</p>
+        </div>
+      </template>
     </div>
 
-    <!-- Menu Inferior Atualizado -->
+    <!-- Menu Inferior -->
     <div class="bottom-nav border-top p-4" style="height: 110px; margin-top: -15px;">
       <!-- Linha 1: Criar | Finalizar | Histórico -->
       <div class="d-flex justify-content-around mb-5 mt-4">
@@ -45,12 +55,12 @@
 
       <!-- Linha 2: (vazio) | Perfil | (vazio) -->
       <div class="d-flex justify-content-around">
-        <div style="width: 30%;"></div> <!-- Espaço vazio -->
+        <div style="width: 30%;"></div>
         <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/perfil')">
           <i class="bi bi-person d-block text-secondary" style="font-size: 40px;"></i>
           <span class="d-block large">Perfil</span>
         </button>
-        <div style="width: 30%;"></div> <!-- Espaço vazio -->
+        <div style="width: 30%;"></div>
       </div>
     </div>
   </div>
@@ -67,7 +77,6 @@ export default {
   setup() {
     const store = useOccurrencesStore()
     
-    // Pega as 2 ocorrências mais antigas do usuário atual
     const oldestOccurrences = computed(() => {
       return store.oldestUserOccurrences(store.currentUser?.id, 2)
     })
@@ -87,7 +96,7 @@ export default {
 }
 
 .bottom-nav {
-  z-index: 1000; /* Garante que fique acima de outros elementos */
+  z-index: 1000;
 }
 
 .occurrences-container {
@@ -95,5 +104,6 @@ export default {
   flex-direction: column;
   gap: 16px;
   margin-bottom: 16px;
+  min-height: 200px;
 }
 </style>

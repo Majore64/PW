@@ -12,19 +12,24 @@ export const useOccurrencesStore = defineStore('occurrences', {
           id: Date.now(),
           status: 'pending',
           createdAt: new Date().toISOString(),
-          createdBy: this.currentUser.id, // Alterado para usar ID em vez de name
-          createdByName: this.currentUser.name, // Adicionado campo separado para nome
+          createdBy: this.currentUser.id,
+          createdByName: this.currentUser.name,
           media: occurrence.media || null
         }
         this.occurrences.push(newOccurrence)
         localStorage.setItem('occurrences', JSON.stringify(this.occurrences))
       },
-      
+      resolveOccurrence(id) {
+        const occurrence = this.occurrences.find(o => o.id === id)
+        if (occurrence) {
+          occurrence.status = 'resolved'
+          localStorage.setItem('occurrences', JSON.stringify(this.occurrences))
+        }
+      }
     },
     getters: {
-     
       getOccurrenceById: (state) => (id) => {
-        return state.occurrences.find(o => o.id === Number(id)); // Converte para Number pois o ID da rota é string
+        return state.occurrences.find(o => o.id === Number(id))
       },
       userOccurrences: (state) => (userId) => {
         return state.occurrences.filter(o => o.createdBy === userId)
@@ -39,6 +44,4 @@ export const useOccurrencesStore = defineStore('occurrences', {
           .slice(0, limit)
       }
     }
-  })
-
-  
+})
