@@ -120,7 +120,7 @@ export default {
         { id: 3, nome: 'Esfregona', quantidade: 10, estado: 'Alocado', quantRest: 9 },
         { id: 4, nome: 'Detergente', quantidade: 15, estado: 'Alocado', quantRest: 14 },
         { id: 5, nome: 'Balança', quantidade: 20, estado: 'Disponivel', quantRest: 20 },
-        { id: 6, nome: 'Impressora', quantidade: 10, estado: 'Disponivel', quantRest: 0 },
+        { id: 6, nome: 'Impressora', quantidade: 10, estado: 'Disponivel', quantRest: 10 },
         { id: 7, nome: 'Batas médicas', quantidade: 50, estado: 'Disponivel', quantRest: 50 },
         { id: 8, nome: 'Seringas', quantidade: 100, estado: 'Disponivel', quantRest: 100 },
         { id: 9, nome: 'Bolsas de esterilização', quantidade: 150, estado: 'Disponivel', quantRest: 150 },
