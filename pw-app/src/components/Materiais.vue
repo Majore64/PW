@@ -53,7 +53,7 @@
                 {{ material.estado }}
               </span>
             </td>
-            <td>{{ material.estado.toLowerCase().includes('disponivel') ? material.quantidade : material.quantRest }}</td>
+            <td>{{ material.quantRest }}</td>
             <td class="actions-cell">
               <button @click="verInfo(material)" class="action-btn" title="Editar">
                 <span class="material-icons">more_vert</span>
@@ -115,22 +115,23 @@ export default {
       itensPorPagina: 10,
       materialSelecionado: null,
       materiais: [
-        { id: 1, nome: 'Estetoscópio', quantidade: '50', estado: 'Disponivel', quantRest: '0' },
-        { id: 2, nome: 'Medidor de tensão', quantidade: '20', estado: 'Alocado', quantRest: '18' },
-        { id: 3, nome: 'Esfregona', quantidade: '10', estado: 'Alocado', quantRest: '9' },
-        { id: 4, nome: 'Detergente', quantidade: '15', estado: 'Alocado', quantRest: '14' },
-        { id: 5, nome: 'Balança', quantidade: '20', estado: 'Disponivel', quantRest: '0' },
-        { id: 6, nome: 'Impressora', quantidade: '10', estado: 'Disponivel', quantRest: '0' },
-        { id: 7, nome: 'Batas médicas', quantidade: '50', estado: 'Disponivel', quantRest: '0' },
-        { id: 8, nome: 'Seringas', quantidade: '100', estado: 'Disponivel', quantRest: '0' },
-        { id: 9, nome: 'Bolsas de esterilização', quantidade: '150', estado: 'Disponivel', quantRest: '0' },
-        { id: 10, nome: 'Luvas cirurgicas', quantidade: '200', estado: 'Disponivel', quantRest: '0' },
-        { id: 11, nome: 'Termómetro', quantidade: '30', estado: 'Disponivel', quantRest: '0' },
-        { id: 12, nome: 'Máscaras', quantidade: '500', estado: 'Alocado', quantRest: '450' },
+        { id: 1, nome: 'Estetoscópio', quantidade: 50, estado: 'Disponivel', quantRest: 50 },
+        { id: 2, nome: 'Medidor de tensão', quantidade: 20, estado: 'Alocado', quantRest: 18 },
+        { id: 3, nome: 'Esfregona', quantidade: 10, estado: 'Alocado', quantRest: 9 },
+        { id: 4, nome: 'Detergente', quantidade: 15, estado: 'Alocado', quantRest: 14 },
+        { id: 5, nome: 'Balança', quantidade: 20, estado: 'Disponivel', quantRest: 20 },
+        { id: 6, nome: 'Impressora', quantidade: 10, estado: 'Disponivel', quantRest: 0 },
+        { id: 7, nome: 'Batas médicas', quantidade: 50, estado: 'Disponivel', quantRest: 50 },
+        { id: 8, nome: 'Seringas', quantidade: 100, estado: 'Disponivel', quantRest: 100 },
+        { id: 9, nome: 'Bolsas de esterilização', quantidade: 150, estado: 'Disponivel', quantRest: 150 },
+        { id: 10, nome: 'Luvas cirurgicas', quantidade: 200, estado: 'Disponivel', quantRest: 200 },
+        { id: 11, nome: 'Termómetro', quantidade: 30, estado: 'Disponivel', quantRest: 30 },
+        { id: 12, nome: 'Máscaras', quantidade: 500, estado: 'Alocado', quantRest: 450 },
       ],
       tabs: [
         { id: 'todos', label: 'Todos Materiais' },
         { id: 'disponiveis', label: 'Disponiveis' },
+        { id: 'alocados', label: 'Alocados' },
         { id: 'indisponiveis', label: 'Indisponiveis' }
       ]
     };
@@ -139,11 +140,107 @@ export default {
     materiaisFiltrados() {
       let filtrados = [...this.materiais];
 
+      // COLOCAR DO LADO DAS OCORRENCIAS E APAGAR AQUI
+      const ocorrencias = [
+        {
+          id: 1,
+          descricao: "Queda em escadas",
+          data: "2025-05-05",
+          materiaisUsados: [
+            { id: 2 },
+            { id: 3 },
+            { id: 10 }
+          ]
+        },
+        {
+          id: 2,
+          descricao: "Ferida aberta",
+          data: "2025-05-06",
+          materiaisUsados: [
+            { id: 2 },
+            { id: 12 },
+            { id: 10 }
+          ]
+        },
+        {
+          id: 3,
+          descricao: "Atendimento domiciliário",
+          data: "2025-05-06",
+          materiaisUsados: [
+            { id: 1 },
+            { id: 2 },
+            { id: 10 }
+          ]
+        }
+      ];
+      localStorage.setItem("ocorrencias", JSON.stringify(ocorrencias));
+
+      // 1. Obter as ocorrências da localStorage
+      let ocorrenciasJSON = localStorage.getItem('ocorrencias');
+      if (!ocorrenciasJSON) ocorrenciasJSON = null;
+
+      if (ocorrenciasJSON) {
+
+      const ocorrencias = JSON.parse(ocorrenciasJSON);
+
+      // 2. Inicializar um mapa para contar os materiais usados
+      const contagemMateriais = {};
+
+      // 3. Contar os materiais usados em todas as ocorrências
+      ocorrencias.forEach(ocorrencia => {
+        if (Array.isArray(ocorrencia.materiaisUsados)) {
+          ocorrencia.materiaisUsados.forEach(materialUsado => {
+            const id = materialUsado.id;
+            if (!contagemMateriais[id]) {
+              contagemMateriais[id] = 0;
+            }
+            contagemMateriais[id] += 1;
+          });
+        }
+      });
+
+        // 4. Atualizar o array local `materiais`
+        filtrados =  filtrados.map(material => {
+          const usado = contagemMateriais[material.id] || 0;
+          return {
+            ...material,
+            quantRest: Math.max(material.quantidade - usado, 0)
+          };
+        });
+      }
+
+      // ler da localstorage a quantidade alocada de materias e atualizar no "filtrados" no campo quantRest
+      // comparaçao entre o array materiais inicial com o array da localstorage para encontrar o mesmo material
+
       // Aplicar filtro por estado
       if (this.filtroAtivo === 'disponiveis') {
-        filtrados = filtrados.filter(m => m.estado.toLowerCase().includes('disponivel'));
-      } else if (this.filtroAtivo === 'indisponiveis') {
-        filtrados = filtrados.filter(m => m.estado.toLowerCase().includes('alocado'));
+        let arr = [];
+        filtrados = filtrados.filter(m => { 
+          if (m.quantidade == m.quantRest) { 
+            m.estado = "Disponivel";
+            arr.push(m) 
+          }
+        })
+        filtrados = arr;
+      } else if (this.filtroAtivo === 'alocados') {
+        let arr = [];
+        filtrados = filtrados.filter(m => { 
+          if (m.quantidade > m.quantRest) { 
+            m.estado = "Alocado";
+            arr.push(m) 
+          }
+        })
+        filtrados = arr;
+      }else if (this.filtroAtivo === 'indisponiveis') {
+        let arr = [];
+        filtrados = filtrados.filter(m => { 
+          if (m.quantRest === 0) { 
+            m.estado = "Indisponivel";
+            arr.push(m) 
+          }
+          //Number(m.quantRest)===0});
+        })
+        filtrados = arr;
       }
 
       // Aplicar pesquisa
@@ -165,8 +262,10 @@ export default {
 
       if (this.filtroAtivo === 'disponiveis') {
         total = total.filter(m => m.estado.toLowerCase().includes('disponivel'));
-      } else if (this.filtroAtivo === 'indisponiveis') {
+      } else if (this.filtroAtivo === 'alocados') {
         total = total.filter(m => m.estado.toLowerCase().includes('alocado'));
+      } else if (this.filtroAtivo === 'indisponiveis') {
+        total = total.filter(m => Number(m.quantRest)===0);
       }
 
       if (this.termoPesquisa.trim()) {
@@ -211,7 +310,7 @@ export default {
     },
     irParaPagina(n) {
       this.paginaAtual = n;
-    }
+    },
   },
   mounted() {
     this.$emit('update-title', 'Materiais');
@@ -369,6 +468,12 @@ export default {
   background-color: #e8f5e9;
   color: #2e7d32;
   border: 1px solid #c8e6c9;
+}
+
+.estado-badge.indisponivel {
+  background-color: #fac8c8;
+  color: #ee0303;
+  border: 1px solid #fac8c8;
 }
 
 .estado-badge.alocado {
