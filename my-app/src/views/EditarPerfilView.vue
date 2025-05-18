@@ -33,12 +33,32 @@ function prefillPhone() {
 
 // Função para salvar as alterações feitas
 function saveChanges() {
-  if (!name.value.trim() || !email.value.trim()) {
-    alert('Por favor, preencha o nome e o email!')
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const birthdateRegex = /^\d{2}\/\d{2}\/\d{4}$/
+  const phoneRegex = /^\+351 \d{9}$/
+
+  if (!name.value.trim()) {
+    alert('O nome não pode estar vazio!')
     return
   }
-  if (!email.value.includes('@')) {
+
+  if (!email.value.trim() || !emailRegex.test(email.value)) {
     alert('Por favor, insira um email válido!')
+    return
+  }
+
+  if (birthdate.value && !birthdateRegex.test(birthdate.value)) {
+    alert('Data de nascimento inválida. Use o formato DD/MM/AAAA.')
+    return
+  }
+
+  if (phone.value && !phoneRegex.test(phone.value)) {
+    alert('Contacto inválido. Use o formato +351 912345678.')
+    return
+  }
+
+  if (!address.value.trim()) {
+    alert('A morada não pode estar vazia!')
     return
   }
 
@@ -52,11 +72,8 @@ function saveChanges() {
     address: address.value,
     picture: existing.picture || ''
   }
-  
-  // Salvando os dados no localStorage
-  localStorage.setItem('user', JSON.stringify(updated))
 
-  // Redireciona para o perfil
+  localStorage.setItem('user', JSON.stringify(updated))
   router.push('/perfil')
 }
 </script>
