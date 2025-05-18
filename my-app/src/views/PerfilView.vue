@@ -24,11 +24,13 @@ onMounted(() => {
   }
 })
 
-const recentOccurrences = computed(() => {
+// Modificado para mostrar apenas pendentes mais recentes
+const pendingOccurrences = computed(() => {
   const occurrences = store.userOccurrences(store.currentUser?.id)
   return occurrences
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 3)
+    .filter(o => o.status === 'pending') // Filtra apenas pendentes
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Ordena por data (mais recente primeiro)
+    .slice(0, 3) // Limita a 3 ocorrências
 })
 </script>
 
@@ -80,7 +82,7 @@ const recentOccurrences = computed(() => {
     <!-- Histórico com botão Ver tudo -->
     <div class="d-flex justify-content-between align-items-center pt-3 w-100">
       <div class="d-flex align-items-center ps-3">
-        <span class="fs-5 fw-medium me-2">Histórico</span>
+        <span class="fs-5 fw-medium me-2">Pendentes Recentes</span> <!-- Alterado o título -->
         <i class="bi bi-file-earmark-text-fill fs-5"></i>
       </div>
       <div>
@@ -88,14 +90,14 @@ const recentOccurrences = computed(() => {
       </div>
     </div>
 
-    <!-- Lista de ocorrências -->
+    <!-- Lista de ocorrências PENDENTES -->
     <div class="occurrences-container mx-4 mt-4 mb-4">
       <OccurrenceCard 
-        v-for="occurrence in recentOccurrences" 
+        v-for="occurrence in pendingOccurrences" 
         :key="occurrence.id" 
         :occurrence="occurrence"
       />
-      <p v-if="recentOccurrences.length === 0" class="text-center text-muted mt-3">Sem ocorrências registadas.</p>
+      <p v-if="pendingOccurrences.length === 0" class="text-center text-muted mt-3">Sem ocorrências pendentes.</p> <!-- Mensagem atualizada -->
     </div>
   </div>
 </template>

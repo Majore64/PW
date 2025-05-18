@@ -148,8 +148,8 @@
       <button 
         @click="handleSubmit" 
         :disabled="!form.type || !form.location"
-        class="btn btn-secondary text-white mt-3 fs-1 rounded-4" 
-        style="width:135px"
+        class="btn btn-secondary text-white mt-1 fs-3 rounded-4" 
+        style="width:100px"
       >
         Criar
       </button>

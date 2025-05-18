@@ -21,7 +21,7 @@
       <div class="border border-secondary rounded-3 bg-white shadow-sm overflow-hidden">
         <!-- Conteúdo -->
         <div class="p-3">
-          <!-- Título -->
+          <!-- Título Principal (ajustado conforme pedido) -->
           <h2 class="text-center mb-4 text-secondary">{{ formattedType }}</h2>
 
           <!-- Informações Básicas -->
@@ -37,19 +37,28 @@
           <div class="bg-secondary rounded-3 overflow-hidden">
             <div class="p-3">
               <h5 class="mb-3 text-white position-relative pb-2">
-                Descrição
+                {{ occurrence.status === 'pending' ? 'Descrição' : 'Solução Aplicada' }}
                 <span class="position-absolute bottom-0 start-0 w-100 border-bottom border-dark"></span>
               </h5>
             </div>
             <div class="p-3 pt-0 text-white" style="min-height: 100px; max-height: 300px; overflow-y: auto;">
-              <p class="mb-0">{{ occurrence.description || "Sem descrição" }}</p>
+              <p class="mb-0">{{ currentDescription }}</p>
             </div>
           </div>
 
-          <hr class="my-4">
+          <!-- Botão Media Centralizado (nova adição conforme pedido) -->
+          <div v-if="hasMedia" class="text-center mt-4">
+            <button 
+              @click="showMedia = true"
+              class="btn btn-outline-secondary"
+            >
+              <i class="bi" :class="mediaIcon"></i>
+              {{ mediaButtonText }}
+            </button>
+          </div>
 
-          <!-- Status -->
-          <div class="text-center">
+          <!-- Status no rodapé (ajustado conforme pedido) -->
+          <div class="text-center mt-4">
             <span 
               class="badge rounded-pill fs-6 px-3 py-2"
               :class="statusClass"
@@ -60,22 +69,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Media -->
+    <div v-if="showMedia" class="modal-backdrop" @click.self="showMedia = false">
+      <div class="modal-content bg-white p-4 rounded-3 border border-secondary">
+        <button 
+          @click="showMedia = false" 
+          class="btn-close position-absolute top-0 end-0 m-2"
+        ></button>
+        
+        <div v-if="isImage" class="text-center">
+          <img :src="mediaSrc" class="img-fluid" style="max-height: 80vh;">
+        </div>
+        
+        <div v-else-if="isVideo" class="text-center">
+          <video controls class="w-100" style="max-height: 80vh;">
+            <source :src="mediaSrc">
+          </video>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
 
 const route = useRoute();
 const store = useOccurrencesStore();
+const showMedia = ref(false);
 
-const occurrence = computed(() => {
-  // Converta explicitamente para Number
-  return store.getOccurrenceById(Number(route.params.id));
-});
+const occurrence = computed(() => store.getOccurrenceById(Number(route.params.id)));
 
+// Formata o tipo para exibição (mantido como estava)
 const formattedType = computed(() => {
   const types = {
     'falta_material': 'Falta de Material',
@@ -86,30 +114,62 @@ const formattedType = computed(() => {
   return types[occurrence.value?.type] || occurrence.value?.type;
 });
 
-const formattedDate = computed(() => {
-  if (!occurrence.value?.createdAt) return '';
-  const date = new Date(occurrence.value.createdAt);
-  return date.toLocaleDateString('pt-PT', { 
-    day: 'numeric', 
-    month: 'long', 
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+// Descrição dinâmica
+const currentDescription = computed(() => {
+  return occurrence.value?.status === 'resolved' 
+    ? occurrence.value?.resolutionComment || 'Nenhuma descrição de solução fornecida'
+    : occurrence.value?.description || 'Sem descrição';
 });
 
+// Lógica de media/prova
+const mediaData = computed(() => {
+  return occurrence.value?.status === 'resolved'
+    ? occurrence.value?.resolutionProof
+    : occurrence.value?.media;
+});
+
+const hasMedia = computed(() => {
+  return mediaData.value?.data && mediaData.value?.type;
+});
+
+const mediaSrc = computed(() => {
+  return `data:${mediaData.value.type};base64,${mediaData.value.data}`;
+});
+
+const mediaButtonText = computed(() => {
+  return occurrence.value?.status === 'resolved' ? 'Ver Prova' : 'Ver Media';
+});
+
+const mediaIcon = computed(() => {
+  const type = mediaData.value?.type || '';
+  if (type.includes('image')) return 'bi-image-fill';
+  if (type.includes('video')) return 'bi-camera-reels-fill';
+  return 'bi-paperclip';
+});
+
+const isImage = computed(() => mediaData.value?.type?.includes('image'));
+const isVideo = computed(() => mediaData.value?.type?.includes('video'));
+
+// Status (mantido como estava)
 const formattedStatus = computed(() => {
   return occurrence.value?.status === 'pending' ? 'PENDENTE' : 'RESOLVIDO';
 });
 
 const statusClass = computed(() => {
   return occurrence.value?.status === 'pending' 
-    ? 'bg-warning-subtle text-warning-emphasis'  // Amarelo bonito
-    : 'bg-success-subtle text-success';
+    ? 'bg-warning text-dark'  // Amarelo
+    : 'bg-success text-white'; // Verde
 });
 </script>
 
 <style scoped>
+/* Estilos originais mantidos integralmente */
+
+.text-white p {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 .top-bar {
   background-color: #93E5E0;
 }
@@ -135,5 +195,31 @@ const statusClass = computed(() => {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #4aa8a5;
+}
+
+/* Estilos do modal (minimalista) */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.btn-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 </style>
