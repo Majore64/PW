@@ -1,54 +1,53 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import CriarOcorrenciaView from '../views/CriarOcorrenciaView.vue'
-import FinalizarOcorrenciaView from '@/views/FinalizarOcorrenciaView.vue'
-import VisualizarView from '@/views/VisualizarView.vue'
-import PerfilView from '@/views/PerfilView.vue'
-import EditarPerfilView from '@/views/EditarPerfilView.vue'
-import HistoricoView from '@/views/HistoricoView.vue'
 
 const routes = [
   {
     path: '/',
     name: 'login',
-    component: LoginView
+    component: () => import('@/views/LoginView.vue')
   },
   {
     path: '/dashboard',
     name: 'dashboard',
-    component: DashboardView
+    component: () => import('@/views/DashboardView.vue')
   },
   {
     path: '/criar',
     name: 'criar-ocorrencia',
-    component: CriarOcorrenciaView
+    component: () => import('@/views/CriarOcorrenciaView.vue')
+  },
+  // Rota mais específica primeiro
+  {
+    path: '/ocorrencia/:id',
+    name: 'VisualizarOcorrencia',
+    component: () => import('@/views/VisualizarView.vue'),
+    props: true
+  },
+  {
+    path: '/finalizar/ocorrencia/:id',
+    name: 'FinalizarForm',
+    component: () => import('@/views/FinalizarFormView.vue'),
+    props: true
   },
   {
     path: '/finalizar',
-    name: 'finalizar-ocorrencia',
-    component: FinalizarOcorrenciaView
-  },
-  {
-    path: '/ocorrencia/:id',
-    name: 'VisualizarOcorrencia', // ← Nome padronizado
-    component: VisualizarView,
-    props: true
+    name: 'ListaFinalizacao',
+    component: () => import('@/views/FinalizarOcorrenciaView.vue')
   },
   {
     path: '/perfil',
     name: 'perfil',
-    component: PerfilView
+    component: () => import('@/views/PerfilView.vue')
   },
   {
     path: '/editar',
     name: 'editar',
-    component: EditarPerfilView
+    component: () => import('@/views/EditarPerfilView.vue')
   },
   {
     path: '/historico',
     name: 'historico',
-    component: HistoricoView
+    component: () => import('@/views/HistoricoView.vue')
   }
 ]
 

@@ -19,13 +19,28 @@ export const useOccurrencesStore = defineStore('occurrences', {
         this.occurrences.push(newOccurrence)
         localStorage.setItem('occurrences', JSON.stringify(this.occurrences))
       },
-      resolveOccurrence(id) {
-        const occurrence = this.occurrences.find(o => o.id === id)
-        if (occurrence) {
-          occurrence.status = 'resolved'
-          localStorage.setItem('occurrences', JSON.stringify(this.occurrences))
-        }
+      resolveOccurrence({ id, comment, proof }) {
+    const occurrence = this.occurrences.find(o => o.id === id);
+    if (occurrence) {
+      occurrence.status = 'resolved';
+      occurrence.resolvedAt = new Date().toISOString();
+      occurrence.resolutionComment = comment;
+      occurrence.resolvedBy = this.currentUser.id;
+      
+      // Adiciona a prova se existir
+      if (proof) {
+        occurrence.resolutionProof = {
+          type: proof.type,
+          data: proof.data,
+          name: proof.name,
+          uploadedAt: new Date().toISOString()
+        };
       }
+
+      localStorage.setItem('occurrences', JSON.stringify(this.occurrences));
+    }
+  },
+  
     },
     getters: {
       getOccurrenceById: (state) => (id) => {

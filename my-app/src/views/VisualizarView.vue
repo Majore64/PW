@@ -71,7 +71,10 @@ import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
 const route = useRoute();
 const store = useOccurrencesStore();
 
-const occurrence = computed(() => store.getOccurrenceById(route.params.id));
+const occurrence = computed(() => {
+  // Converta explicitamente para Number
+  return store.getOccurrenceById(Number(route.params.id));
+});
 
 const formattedType = computed(() => {
   const types = {

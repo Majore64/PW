@@ -12,15 +12,23 @@ const sortOrder = ref('recentes');
 const showAll = ref(false);
 const initialItemCount = 4;
 
-// Obtém ocorrências do usuário ordenadas
+// Obtém ocorrências do usuário ordenadas (pendentes primeiro, depois resolvidas)
 const userOccurrences = computed(() => {
   const occurrences = store.userOccurrences(store.currentUser?.id);
   
-  return occurrences.sort((a, b) => {
-    const dateA = new Date(a.createdAt);
-    const dateB = new Date(b.createdAt);
-    return sortOrder.value === 'recentes' ? dateB - dateA : dateA - dateB;
-  });
+  // Separa pendentes e resolvidas
+  const pending = occurrences.filter(o => o.status === 'pending');
+  const resolved = occurrences.filter(o => o.status === 'resolved');
+  
+  // Ordena cada grupo
+  const sortFn = (a, b) => sortOrder.value === 'recentes' 
+    ? new Date(b.createdAt) - new Date(a.createdAt)
+    : new Date(a.createdAt) - new Date(b.createdAt);
+  
+  return [
+    ...pending.sort(sortFn),
+    ...resolved.sort(sortFn)
+  ];
 });
 
 // Ocorrências visíveis
@@ -30,14 +38,20 @@ const displayedOccurrences = computed(() => {
     : userOccurrences.value.slice(0, initialItemCount);
 });
 
-// Função para alternar ordenação (FALTANTE NO CÓDIGO ANTERIOR)
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'recentes' ? 'antigos' : 'recentes';
 };
 
-// Alterna entre mostrar todos/4 itens
 const toggleShowAll = () => {
   showAll.value = !showAll.value;
+};
+
+// Estilo dinâmico para o card baseado no status
+const getCardStyle = (status) => {
+  return {
+    'pending': 'border-left: 4px solid #FFC107; background-color: #FFF8E1;',
+    'resolved': 'border-left: 4px solid #4CAF50; background-color: #E8F5E9;'
+  }[status];
 };
 </script>
 
@@ -72,13 +86,36 @@ const toggleShowAll = () => {
       </h5>
     </div>
 
+    <!-- Contadores -->
+    <div class="d-flex justify-content-center gap-4 mb-4">
+      <span class="badge rounded-pill px-3 py-2" style="background-color: #FFF8E1; color: #FFA000;">
+        <i class="bi bi-exclamation-circle me-1"></i>
+        Pendentes: {{ userOccurrences.filter(o => o.status === 'pending').length }}
+      </span>
+      <span class="badge rounded-pill px-3 py-2" style="background-color: #E8F5E9; color: #2E7D32;">
+        <i class="bi bi-check-circle me-1"></i>
+        Resolvidas: {{ userOccurrences.filter(o => o.status === 'resolved').length }}
+      </span>
+    </div>
+
     <!-- Lista de Ocorrências -->
     <div class="occurrences-container mx-auto" style="max-width: 315px;">
-      <OccurrenceCard 
+      <div 
         v-for="occurrence in displayedOccurrences" 
-        :key="occurrence.id" 
-        :occurrence="occurrence"
-      />
+        :key="occurrence.id"
+        class="occurrence-wrapper"
+        :style="getCardStyle(occurrence.status)"
+      >
+        <OccurrenceCard :occurrence="occurrence" />
+        <div class="status-badge">
+          <span v-if="occurrence.status === 'pending'" class="badge bg-warning text-dark">
+            PENDENTE
+          </span>
+          <span v-else class="badge bg-success text-white">
+            RESOLVIDO
+          </span>
+        </div>
+      </div>
     </div>
 
     <!-- Botão Expandir/Recolher -->
@@ -100,6 +137,26 @@ const toggleShowAll = () => {
 .occurrences-container {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 20px;
+}
+
+.occurrence-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 </style>
