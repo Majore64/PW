@@ -72,7 +72,7 @@
   </div>
 </template>
 
-  <script setup>
+<script setup>
   import { ref, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
   import { useOcorrenciasStore } from '@/stores/ocorrencias' // <-- IMPORTA A STORE
@@ -110,21 +110,28 @@
 
     // FUNÇÃO PARA GUARDAR NA STORE
       function criarOcorrencia() {
-        const nova = {
+        const novaOcorrencia = {
+          id: Date.now().toString(),
           tipo: tipoSelecionado.value,
-          email: email.value,
+          data: new Date().toLocaleString(),
           zona: zona.value,
           andar: andar.value,
-          imagem: imagemSelecionada.value,
+          email: email.value,
           materiais: materiaisEscolhidos.value,
           descricao: descricao.value,
-          data: new Date().toLocaleString()
+          imagem: imagemSelecionada.value
         }
 
-        store.adicionarOcorrencia(nova)
-        console.log(store.ocorrencias) // <-- ADICIONA À STORE
+        // Save to store
+        store.adicionarOcorrencia(novaOcorrencia)
+
+        // Save to localStorage
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
+        ocorrencias.push(novaOcorrencia)
+        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias))
+
         alert('Ocorrência criada com sucesso!')
-        router.push('/') // <-- VOLTA PARA HOME OU AJUSTA
+        router.push(`/detalhes/${novaOcorrencia.id}`)
       }
       const inputFile = ref(null)
        function abrirUpload() {
@@ -141,7 +148,33 @@
           reader.readAsDataURL(file)
         }
       }
-  </script>
+
+      const salvarOcorrencia = () => {
+        // Create new occurrence object
+        const novaOcorrencia = {
+          id: Date.now().toString(), // Generate unique ID
+          tipo: tipoSelecionado.value,
+          data: new Date().toLocaleDateString(),
+          zona: zona.value,
+          andar: andar.value,
+          email: email.value,
+          descricao: descricao.value,
+          imagem: imagemSelecionada.value
+        };
+
+        // Get existing occurrences
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+
+        // Add new occurrence
+        ocorrencias.push(novaOcorrencia);
+
+        // Save back to localStorage
+        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
+
+        // Navigate to details page
+        router.push(`/detalhes/${novaOcorrencia.id}`);
+      };
+</script>
 
 
   <style scoped>

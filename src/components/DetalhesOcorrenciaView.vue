@@ -1,30 +1,112 @@
 <template>
-  <div class="detalhes-page">
-    <div class="top-bar">
-      <button @click="$router.back()" class="close-button">✕</button>
-      <h1 class="titulo">Detalhes da Ocorrência</h1>
+  <div class="container">
+    <div class="header">
+      <button @click="$router.back()" class="close-btn">
+        <X />
+      </button>
+      <h1 class="title">Detalhes da Ocorrência</h1>
     </div>
 
-    <div class="info-container">
-      <div class="info-left">
-        <div class="tipo-ocorrencia">{{ ocorrencia?.tipo }}</div>
+    <div class="content">
+      <!-- Left Column - Details -->
+      <div class="left-column">
+        <!-- Status Badge -->
+        <div class="badge-container">
+          <div class="status-badge">
+            {{ ocorrencia?.tipo }}
+          </div>
+        </div>
 
-        <p><strong>Data:</strong> {{ ocorrencia?.data }}</p>
+        <!-- Date -->
+        <div class="info-section">
+          <h2 class="section-title">Data:</h2>
+          <p class="section-text">{{ ocorrencia?.data }}</p>
+        </div>
 
-        <p><strong>Localização:</strong> {{ ocorrencia?.zona }} - {{ ocorrencia?.andar }}</p>
+        <!-- Location -->
+        <div class="info-section">
+          <h2 class="section-title">Localização</h2>
+          <div class="info-with-icon">
+            <MapPin class="icon" />
+            <p class="section-text">
+              {{ ocorrencia?.zona }},
+              {{ ocorrencia?.andar }}
+            </p>
+          </div>
+        </div>
 
-        <p><strong>Denunciante:</strong> {{ ocorrencia?.email }}</p>
+        <!-- Reporter -->
+        <div class="info-section">
+          <h2 class="section-title">Denunciante</h2>
+          <div class="info-with-icon">
+            <Mail class="icon" />
+            <div>
+              <p class="section-text">
+                {{ ocorrencia?.email }}
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <p><strong>Descrição:</strong></p>
-        <p>{{ ocorrencia?.descricao }}</p>
+        <!-- Description -->
+        <div class="info-section">
+          <h2 class="section-title">Descrição</h2>
+          <p class="description-text">
+            {{ ocorrencia?.descricao }}
+          </p>
+        </div>
+
+        <!-- Status -->
+        <div class="status-container">
+          <div class="analysis-badge">
+            Em Análise
+          </div>
+        </div>
       </div>
 
-      <div class="info-right">
-        <img :src="ocorrencia?.imagem || mapaExemplo" alt="Mapa" class="mapa" />
+      <!-- Right Column - Map and Images -->
+      <div class="right-column">
+        <!-- Map -->
+        <div class="map-container">
+          <img
+            :src="ocorrencia?.imagem || mapaExemplo"
+            alt="Mapa do Hospital da Luz Lisboa"
+            class="map-image"
+          />
+          <div class="map-center-marker">
+            <div class="marker-outer">
+              <div class="marker-inner">
+                <span class="marker-plus">+</span>
+              </div>
+            </div>
+          </div>
+          <div class="hospital-marker">
+            <div class="red-marker">
+              <MapPin class="marker-icon" />
+            </div>
+            <div class="marker-label">Hospital da Luz Lisboa</div>
+          </div>
+        </div>
 
-        <div class="registos">
-          <p><strong>Registos pelo denunciante:</strong></p>
-          <img :src="ocorrencia?.imagem || imagemExemplo" alt="Imagem do problema" class="imagem-registo" />
+        <!-- Images -->
+        <div class="images-section">
+          <h2 class="section-title">Registos pelo denunciante</h2>
+          <div class="images-grid">
+            <div class="image-container">
+              <img
+                :src="ocorrencia?.imagem || imagemExemplo"
+                alt="Equipamento médico 1"
+                class="evidence-image"
+              />
+            </div>
+            <div class="image-container">
+              <img
+                :src="ocorrencia?.imagem || imagemExemplo"
+                alt="Equipamento médico 2"
+                class="evidence-image"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -32,92 +114,252 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
-import { useOcorrenciasStore } from '@/stores/ocorrencias'
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { X, MapPin, Mail, FileText } from 'lucide-vue-next';
+import mapaExemplo from '@/assets/mapa.png';
+import imagemExemplo from '@/assets/exemplo.png';
 
-import mapaExemplo from '@/assets/mapa.png'
-import imagemExemplo from '@/assets/exemplo.png'
+const route = useRoute();
+const ocorrencia = ref(null);
 
-const route = useRoute()
-const store = useOcorrenciasStore()
+onMounted(() => {
+  const id = route.params.id;
+  const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+  ocorrencia.value = ocorrencias.find(o => o.id === id);
 
-const id = Number(route.params.id)
-const ocorrencia = store.lista[id]
+  if (!ocorrencia.value) {
+    console.error('Ocorrência não encontrada:', id);
+  }
+});
 </script>
 
 <style scoped>
-.detalhes-page {
-  padding: 2rem;
-  background-color: #f3f6f9;
-  min-height: 100vh;
+.container {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem;
+  background-color: #fcfcff;
 }
 
-.top-bar {
+.header {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.close-button {
-  background-color: #1c2d50;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  padding: 0.5rem 0.7rem;
-  font-size: 1.2rem;
-  cursor: pointer;
+.close-btn {
+  color: #111b29;
 }
 
-.titulo {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #12203c;
+.title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111b29;
 }
 
-.info-container {
-  margin-top: 2rem;
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
+.content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
-.info-left {
-  flex: 1;
+@media (min-width: 768px) {
+  .content {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+.left-column {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
-.tipo-ocorrencia {
-  background-color: #a2e2e2;
-  padding: 0.8rem;
-  font-size: 1.4rem;
+.badge-container {
+  width: 100%;
+}
+
+.status-badge {
+  background-color: rgba(3, 181, 170, 0.2);
+  color: #03b5aa;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
   text-align: center;
-  border-radius: 12px;
-  font-weight: bold;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
-.info-right {
-  flex: 1;
+.info-section {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+}
+
+.section-title {
+  color: #545e75;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.section-text {
+  color: #111b29;
+}
+
+.info-with-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  color: #03b5aa;
+}
+
+.email-text {
+  color: #7e7e7e;
+}
+
+.description-text {
+  color: #111b29;
+  font-size: 0.875rem;
+  line-height: 1.625;
+}
+
+.status-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+}
+
+.analysis-badge {
+  background-color: #fcdebe;
+  color: #695c5c;
+  padding: 0.5rem 2rem;
+  border-radius: 9999px;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.map-container {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  height: 20rem;
+  background-color: #eff2f4;
+  position: relative;
+}
+
+.map-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.map-center-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.marker-outer {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  background-color: white;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-inner {
+  width: 2rem;
+  height: 2rem;
+  background-color: #03b5aa;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-plus {
+  color: white;
+  font-size: 1.25rem;
+}
+
+.hospital-marker {
+  position: absolute;
+  top: 25%;
+  right: 25%;
+}
+
+.red-marker {
+  background-color: #ff0004;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: white;
+}
+
+.marker-label {
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.images-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
-.mapa {
+.image-container {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  height: 8rem;
+}
+
+.evidence-image {
   width: 100%;
-  border-radius: 10px;
+  height: 100%;
   object-fit: cover;
 }
 
-.registos {
-  margin-top: 1rem;
+.custom-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.imagem-registo {
-  width: 100%;
-  max-height: 200px;
-  object-fit: cover;
-  border-radius: 10px;
+.map-marker {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 </style>
