@@ -11,8 +11,8 @@
 
     <!-- Direita: Login e Sign Up -->
     <div class="nav-buttons right">
+      <button class="nav-btn filled" @click="$emit('ativarChatBot')">🤖 ChatBot</button>
       <button @click="goToLogin" class="nav-btn">Login</button>
-      <button class="nav-btn filled">Sign Up</button>
     </div>
   </header>
 </template>
@@ -23,12 +23,16 @@ export default {
   methods: {
     goToLogin() {
       this.$router.push('/login')
-    }
+    },
+    irParaChat() {
+    this.$router.push('/chatbot')
+  }
   }
 }
 </script>
 
 <style scoped>
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -37,6 +41,7 @@ export default {
   padding: 20px 40px;
   height: 100px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+   border-bottom: 4px solid #00b8b8; /* azul igual aos botões */
 }
 
 .left-group {

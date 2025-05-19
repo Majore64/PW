@@ -1,7 +1,8 @@
 <template>
   <div>
     <!-- Header -->
-    <Header />
+   
+
     <!-- Hero image com texto -->
     <section class="hero-section">
       <img src="@/assets/Pagina_inicial.png" class="hero-img" alt="Hospital" />
@@ -105,8 +106,7 @@
           <h1 class="apoio-clientes">apoiamos <span>quem cuida</span></h1>
         </div>
 
-        <!-- Footer -->
-      <Footer />
+       
       </section>
 
   </div>
