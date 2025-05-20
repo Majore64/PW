@@ -76,9 +76,9 @@ const formattedType = computed(() => {
     equipamento_danificado: 'Reparo',
     falta_material: 'Reposição',
     material_fora_lugar: 'Organização'
-  };
-  return types[props.occurrenceType] || props.occurrenceType;
-});
+  }
+  return types[props.occurrenceType] || props.occurrenceType
+})
 
 const confirmSelection = () => {
   emit('confirm', {
