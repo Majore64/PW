@@ -26,7 +26,7 @@
           <span class="material-icons">search</span>
         </button>
         <!-- Botão de adicionar -->
-        <button @click="adicionarMaterial" class="add-btn">
+        <button @click="togglePopupAdicionarMaterial" class="add-btn">
           <span class="material-icons">add</span>
         </button>
       </div>
@@ -46,10 +46,10 @@
         </thead>
         <tbody>
           <tr v-for="material in materiaisFiltrados" :key="material.id">
-            <td>{{ material.nome }}</td>
+            <td>{{ material.nomeMaterial }}</td>
             <td>{{ material.quantidade }}</td>
             <td>
-              <span :class="['estado-badge', material.estado.toLowerCase()]">
+              <span :class="['estado-badge', (material.estado || '').toLowerCase()]">
                 {{ material.estado }}
               </span>
             </td>
@@ -85,12 +85,15 @@
     <PopupAdicionarMaterial
       v-if="showPopupAdicionarMaterial" 
       :togglePopup="togglePopupAdicionarMaterial"
+      @material-adicionado="adicionarMaterial"
     />
 
     <PopupInfoMateriais
       v-if="showPopupInfoMateriais" 
       :togglePopup="togglePopupInfoMateriais"
       :material="materialSelecionado"
+      @material-editado="editarMaterial"
+      @material-removido="removerMaterial"
     />
   </div>
 </template>
@@ -114,20 +117,7 @@ export default {
       paginaAtual: 1,
       itensPorPagina: 10,
       materialSelecionado: null,
-      materiais: [
-        { id: 1, nome: 'Estetoscópio', quantidade: 50, estado: 'Disponivel', quantRest: 50 },
-        { id: 2, nome: 'Medidor de tensão', quantidade: 20, estado: 'Alocado', quantRest: 18 },
-        { id: 3, nome: 'Esfregona', quantidade: 10, estado: 'Alocado', quantRest: 9 },
-        { id: 4, nome: 'Detergente', quantidade: 15, estado: 'Alocado', quantRest: 14 },
-        { id: 5, nome: 'Balança', quantidade: 20, estado: 'Disponivel', quantRest: 20 },
-        { id: 6, nome: 'Impressora', quantidade: 10, estado: 'Disponivel', quantRest: 10 },
-        { id: 7, nome: 'Batas médicas', quantidade: 50, estado: 'Disponivel', quantRest: 50 },
-        { id: 8, nome: 'Seringas', quantidade: 100, estado: 'Disponivel', quantRest: 100 },
-        { id: 9, nome: 'Bolsas de esterilização', quantidade: 150, estado: 'Disponivel', quantRest: 150 },
-        { id: 10, nome: 'Luvas cirurgicas', quantidade: 200, estado: 'Disponivel', quantRest: 200 },
-        { id: 11, nome: 'Termómetro', quantidade: 30, estado: 'Disponivel', quantRest: 30 },
-        { id: 12, nome: 'Máscaras', quantidade: 500, estado: 'Alocado', quantRest: 450 },
-      ],
+      materiais: [],
       tabs: [
         { id: 'todos', label: 'Todos Materiais' },
         { id: 'disponiveis', label: 'Disponiveis' },
@@ -141,40 +131,40 @@ export default {
       let filtrados = [...this.materiais];
 
       // COLOCAR DO LADO DAS OCORRENCIAS E APAGAR AQUI
-      const ocorrencias = [
-        {
-          id: 1,
-          descricao: "Queda em escadas",
-          data: "2025-05-05",
-          materiaisUsados: [
-            { id: 2 },
-            { id: 3 },
-            { id: 10 }
-          ]
-        },
-        {
-          id: 2,
-          descricao: "Ferida aberta",
-          data: "2025-05-06",
-          materiaisUsados: [
-            { id: 2 },
-            { id: 12 },
-            { id: 10 }
-          ]
-        },
-        {
-          id: 3,
-          descricao: "Atendimento domiciliário",
-          data: "2025-05-06",
-          materiaisUsados: [
-            { id: 1 },
-            { id: 2 },
-            { id: 10 }
-          ]
-        }
-      ];
-      localStorage.setItem("ocorrencias", JSON.stringify(ocorrencias));
-
+    const ocorrencias = [
+      {
+        id: 1,
+        descricao: "Queda em escadas",
+        data: "2025-05-05",
+        materiaisUsados: [
+          { id: 2 },
+          { id: 3 },
+          { id: 10 }
+        ]
+      },
+      {
+        id: 2,
+        descricao: "Ferida aberta",
+        data: "2025-05-06",
+        materiaisUsados: [
+          { id: 1747737628591 },
+          { id: 12 },
+          { id: 10 }
+        ]
+      },
+      {
+        id: 3,
+        descricao: "Atendimento domiciliário",
+        data: "2025-05-06",
+        materiaisUsados: [
+          { id: 1 },
+          { id: 2 },
+          { id: 10 }
+        ]
+      }
+    ];
+    localStorage.setItem("ocorrencias", JSON.stringify(ocorrencias));
+    
       // 1. Obter as ocorrências da localStorage
       let ocorrenciasJSON = localStorage.getItem('ocorrencias');
       if (!ocorrenciasJSON) ocorrenciasJSON = null;
@@ -202,9 +192,15 @@ export default {
         // 4. Atualizar o array local `materiais`
         filtrados =  filtrados.map(material => {
           const usado = contagemMateriais[material.id] || 0;
+          const restante = Math.max(material.quantidade - usado, 0);
           return {
             ...material,
-            quantRest: Math.max(material.quantidade - usado, 0)
+            quantRest: restante,
+            estado: restante === 0
+              ? 'Indisponivel'
+              : restante === material.quantidade
+                ? 'Disponivel'
+                : 'Alocado'
           };
         });
       }
@@ -238,7 +234,6 @@ export default {
             m.estado = "Indisponivel";
             arr.push(m) 
           }
-          //Number(m.quantRest)===0});
         })
         filtrados = arr;
       }
@@ -247,7 +242,7 @@ export default {
       if (this.termoPesquisa.trim()) {
         const termo = this.termoPesquisa.toLowerCase();
         filtrados = filtrados.filter(m =>
-          m.nome.toLowerCase().includes(termo) || 
+          m.nomeMaterial.toLowerCase().includes(termo) || 
           m.quantidade.toString().includes(termo) ||
           m.id.toString().includes(termo)
         );
@@ -271,7 +266,7 @@ export default {
       if (this.termoPesquisa.trim()) {
         const termo = this.termoPesquisa.toLowerCase();
         total = total.filter(m =>
-          m.nome.toLowerCase().includes(termo) || 
+          m.nomeMaterial.toLowerCase().includes(termo) || 
           m.quantidade.toString().includes(termo) ||
           m.id.toString().includes(termo)
         );
@@ -295,8 +290,24 @@ export default {
       this.materialSelecionado = material;
       this.togglePopupInfoMateriais();
     },
-    adicionarMaterial() {
-      this.togglePopupAdicionarMaterial();
+    adicionarMaterial(novoMaterial) {
+      if (!novoMaterial.estado) novoMaterial.estado = 'Disponivel';
+      if (novoMaterial.quantRest === undefined) novoMaterial.quantRest = novoMaterial.quantidade;
+      this.materiais.push(novoMaterial);
+    },
+    editarMaterial(materialEditado) {
+      const index = this.materiais.findIndex(m => m.id === materialEditado.id);
+      if (index !== -1) {
+        if (!materialEditado.estado) materialEditado.estado = 'Disponivel';
+        if (materialEditado.quantRest === undefined) {
+          materialEditado.quantRest = materialEditado.quantidade;
+        }
+          this.materiais.splice(index, 1, materialEditado);
+        
+      }
+    },
+    removerMaterial(id) {
+      this.materiais = this.materiais.filter(m => m.id !== id);
     },
     proximaPagina() {
       if (this.paginaAtual < this.totalPaginas) {
@@ -312,8 +323,40 @@ export default {
       this.paginaAtual = n;
     },
   },
+  watch: {
+      filtroAtivo(novo) {
+          localStorage.setItem('filtroAtivo', novo);
+      },
+      termoPesquisa(novo) {
+          localStorage.setItem('termoPesquisa', novo);
+      },
+      paginaAtual(novo) {
+          localStorage.setItem('paginaAtual', novo);
+      },
+      materiais: {
+          handler(novosMateriais) {
+              localStorage.setItem('materiais', JSON.stringify(novosMateriais));
+          },
+      deep: true
+      } 
+  },
   mounted() {
-    this.$emit('update-title', 'Materiais');
+      this.$emit('update-title', 'Materiais');
+      const materiaisGuardados = localStorage.getItem('materiais');
+      const filtro = localStorage.getItem('filtroAtivo');
+      const pesquisa = localStorage.getItem('termoPesquisa');
+      const pagina = localStorage.getItem('paginaAtual');
+
+      if (filtro) this.filtroAtivo = filtro;
+      if (pesquisa) this.termoPesquisa = pesquisa;
+      if (pagina) this.paginaAtual = parseInt(pagina);
+      if (materiaisGuardados) {
+          try {
+              this.materiais = JSON.parse(materiaisGuardados);
+          } catch (e) {
+          console.error("Erro ao carregar materiais do localStorage:", e);
+          }
+      }
   }
 };
 </script>

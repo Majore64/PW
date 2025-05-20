@@ -53,7 +53,7 @@ export default {
       immediate: true,
       handler(novoMaterial) {
         if (novoMaterial) {
-          this.form.nomeMaterial = novoMaterial.nome;
+          this.form.nomeMaterial = novoMaterial.nomeMaterial;
           this.form.quantidade = novoMaterial.quantidade;
         }
       }
@@ -61,11 +61,18 @@ export default {
   },
   methods: {
     handleSubmit() {
-      console.log("Material guardado:", this.form);
+      const materialEditado = {
+          ...this.material,
+          nomeMaterial: this.form.nomeMaterial,
+          quantidade: parseInt(this.form.quantidade),
+          quantRest: parseInt(this.form.quantidade) 
+      };
+
+      this.$emit('material-editado', materialEditado);
       this.closePopup();
     },
     handleDelete() {
-      console.log("Material eliminado:", this.form);
+      this.$emit('material-removido', this.material.id);
       this.closePopup();
     },
     closePopup() {
