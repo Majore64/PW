@@ -1,17 +1,22 @@
-<template>
-  <div>
-    <RouterView />
-  </div>
-</template>
-
 <script setup>
+import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue'
+import ChatBot from '@/components/ChatBot.vue'
+import { ref } from 'vue'
 
-// Header removido do App.vue para aparecer apenas no HomeView.vue
+const mostrarChat = ref(false)
 </script>
+
+<template>
+  <Header @ativarChatBot="mostrarChat = !mostrarChat" />
+  <RouterView />
+  <Footer />
+  <ChatBot v-if="mostrarChat" @fechar="mostrarChat = false" />
+</template>
 
 <style>
 body {
-  background-color: white; /* remove o preto do fundo */
+  background-color: white;
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

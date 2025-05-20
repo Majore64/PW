@@ -4,17 +4,24 @@ import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
 import Login from '@/components/Login.vue'
+import ChatBot from '@/components/ChatBot.vue'
+
 
 
 
 
 const routes = [
+  
   {
     path: '/',
     name: 'Home',
     component: HomeView
   },
-
+  {
+    path: '/chatbot',
+    name: 'ChatBot',
+    component: ChatBot  
+  },
   {
     path: '/tipo-ocorrencia',
     name: 'TipoOcorrencia',
