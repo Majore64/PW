@@ -69,40 +69,32 @@
         <!-- Map -->
         <div class="map-container">
           <img
-            :src="ocorrencia?.imagem || mapaExemplo"
-            alt="Mapa do Hospital da Luz Lisboa"
+            :src="mapaExemplo"
+            alt="Mapa do Hospital"
             class="map-image"
           />
-          <div class="map-center-marker">
-            <div class="marker-outer">
-              <div class="marker-inner">
-                <span class="marker-plus">+</span>
-              </div>
-            </div>
-          </div>
           <div class="hospital-marker">
             <div class="red-marker">
               <MapPin class="marker-icon" />
             </div>
-            <div class="marker-label">Hospital da Luz Lisboa</div>
           </div>
         </div>
 
         <!-- Images -->
         <div class="images-section">
-          <h2 class="section-title">Registos pelo denunciante</h2>
+          <h2 class="section-title">Imagens</h2>
           <div class="images-grid">
-            <div class="image-container">
+            <div class="image-container" v-if="ocorrencia?.imagem">
               <img
-                :src="ocorrencia?.imagem || imagemExemplo"
-                alt="Equipamento médico 1"
+                :src="ocorrencia.imagem"
+                alt="Imagem da ocorrência"
                 class="evidence-image"
               />
             </div>
-            <div class="image-container">
+            <div class="image-container" v-else>
               <img
-                :src="ocorrencia?.imagem || imagemExemplo"
-                alt="Equipamento médico 2"
+                :src="imagemExemplo"
+                alt="Imagem padrão"
                 class="evidence-image"
               />
             </div>
@@ -115,21 +107,37 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router'; // Add useRouter
 import { X, MapPin, Mail, FileText } from 'lucide-vue-next';
 import mapaExemplo from '@/assets/mapa.png';
 import imagemExemplo from '@/assets/exemplo.png';
 
 const route = useRoute();
+const router = useRouter(); // Initialize router
 const ocorrencia = ref(null);
 
 onMounted(() => {
-  const id = route.params.id;
-  const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-  ocorrencia.value = ocorrencias.find(o => o.id === id);
+  try {
+    // Get ID from route params
+    const id = route.params.id;
 
-  if (!ocorrencia.value) {
-    console.error('Ocorrência não encontrada:', id);
+    // Get occurrences from localStorage
+    const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+    console.log('Ocorrências encontradas:', ocorrencias); // Debug log
+
+    // Find the specific occurrence
+    const found = ocorrencias.find(o => o.id === id);
+    console.log('Ocorrência encontrada:', found); // Debug log
+
+    if (found) {
+      ocorrencia.value = found;
+    } else {
+      console.error('Ocorrência não encontrada:', id);
+      router.push('/historico');
+    }
+  } catch (error) {
+    console.error('Erro ao carregar ocorrência:', error);
+    router.push('/historico');
   }
 });
 </script>
@@ -267,37 +275,13 @@ onMounted(() => {
   object-fit: cover;
 }
 
-.map-center-marker {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.marker-outer {
-  position: relative;
-  width: 3rem;
-  height: 3rem;
-  background-color: white;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.marker-inner {
-  width: 2rem;
-  height: 2rem;
-  background-color: #03b5aa;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.marker-plus {
-  color: white;
-  font-size: 1.25rem;
+/* Remove these style blocks */
+.map-center-marker,
+.marker-outer,
+.marker-inner,
+.marker-plus,
+.marker-label {
+  display: none;
 }
 
 .hospital-marker {
@@ -322,15 +306,6 @@ onMounted(() => {
   color: white;
 }
 
-.marker-label {
-  background-color: white;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  border-radius: 0.375rem;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-}
-
 .images-section {
   display: flex;
   flex-direction: column;
@@ -344,9 +319,10 @@ onMounted(() => {
 }
 
 .image-container {
-  border-radius: 0.5rem;
+  border-radius: 8px;
   overflow: hidden;
-  height: 8rem;
+  height: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .evidence-image {

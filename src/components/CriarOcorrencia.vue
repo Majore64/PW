@@ -59,6 +59,22 @@
 
         <button class="upload-btn" @click="abrirUpload">📤 Inserir Imagem</button>
           <input type="file" ref="inputFile" style="display: none" @change="handleFile" accept="image/*" />
+
+        <div class="form-group">
+          <label>Imagem da Ocorrência</label>
+          <input
+            type="file"
+            @change="handleImageUpload"
+            accept="image/*"
+            class="form-control"
+          />
+          <img
+            v-if="imagemPreview"
+            :src="imagemPreview"
+            class="preview-image"
+            alt="Preview"
+          />
+        </div>
       </div>
 
       <div class="map-right">
@@ -107,6 +123,8 @@
       const andar = ref('')
       const descricao = ref('')
       const imagemSelecionada = ref(null)
+      const imagemPreview = ref(null)
+      const imagemBase64 = ref(null)
 
     // FUNÇÃO PARA GUARDAR NA STORE
       function criarOcorrencia() {
@@ -119,7 +137,8 @@
           email: email.value,
           materiais: materiaisEscolhidos.value,
           descricao: descricao.value,
-          imagem: imagemSelecionada.value
+          imagem: imagemBase64.value, // Add the image to the occurrence data
+          status: 'Em Análise'
         }
 
         // Save to store
@@ -144,6 +163,18 @@
           const reader = new FileReader()
           reader.onload = () => {
             imagemSelecionada.value = reader.result // guarda imagem como base64
+          }
+          reader.readAsDataURL(file)
+        }
+      }
+
+      const handleImageUpload = (event) => {
+        const file = event.target.files[0]
+        if (file) {
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            imagemPreview.value = e.target.result
+            imagemBase64.value = e.target.result
           }
           reader.readAsDataURL(file)
         }
@@ -301,5 +332,16 @@
     font-size: 1.1rem;
     border-radius: 10px;
     cursor: pointer;
+  }
+
+  .preview-image {
+    max-width: 200px;
+    max-height: 200px;
+    margin-top: 10px;
+    border-radius: 8px;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
   }
   </style>
