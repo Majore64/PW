@@ -21,7 +21,7 @@
       <div class="border border-secondary rounded-3 bg-white shadow-sm overflow-hidden">
         <!-- Conteúdo -->
         <div class="p-3">
-          <!-- Título Principal (ajustado conforme pedido) -->
+          <!-- Título Principal -->
           <h2 class="text-center mb-4 text-secondary">{{ formattedType }}</h2>
 
           <!-- Informações Básicas -->
@@ -29,6 +29,17 @@
             <p class="mb-2"><strong>Alerta dado por:</strong> {{ occurrence.createdByName }}</p>
             <p class="mb-2"><strong>Data da ocorrência:</strong> {{ formattedDate }}</p>
             <p class="mb-0"><strong>Localização:</strong> {{ occurrence.location }}</p>
+            
+            <!-- Seção de Materiais Necessários -->
+            <div v-if="occurrence.equipment?.length" class="mt-2">
+              <p class="mb-3"><strong>Materiais necessários:</strong></p>
+              <div class="d-flex flex-wrap gap-2">
+                <div v-for="(item, idx) in occurrence.equipment" :key="idx" class="material-item">
+                  <span class="material-name">{{ item.name }}</span>
+                  <span class="material-quantity">{{ item.quantity }} un.</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <hr class="my-4">
@@ -46,7 +57,7 @@
             </div>
           </div>
 
-          <!-- Botão Media Centralizado (nova adição conforme pedido) -->
+          <!-- Botão Media -->
           <div v-if="hasMedia" class="text-center mt-4">
             <button 
               @click="showMedia = true"
@@ -57,7 +68,7 @@
             </button>
           </div>
 
-          <!-- Status no rodapé (ajustado conforme pedido) -->
+          <!-- Status -->
           <div class="text-center mt-4">
             <span 
               class="badge rounded-pill fs-6 px-3 py-2"
@@ -103,7 +114,12 @@ const showMedia = ref(false);
 
 const occurrence = computed(() => store.getOccurrenceById(Number(route.params.id)));
 
-// Formata o tipo para exibição (mantido como estava)
+const formattedDate = computed(() => {
+  if (!occurrence.value?.createdAt) return '';
+  const date = new Date(occurrence.value.createdAt);
+  return date.toLocaleDateString('pt-PT') + ' ' + date.toLocaleTimeString('pt-PT');
+});
+
 const formattedType = computed(() => {
   const types = {
     'falta_material': 'Falta de Material',
@@ -114,14 +130,12 @@ const formattedType = computed(() => {
   return types[occurrence.value?.type] || occurrence.value?.type;
 });
 
-// Descrição dinâmica
 const currentDescription = computed(() => {
   return occurrence.value?.status === 'resolved' 
     ? occurrence.value?.resolutionComment || 'Nenhuma descrição de solução fornecida'
     : occurrence.value?.description || 'Sem descrição';
 });
 
-// Lógica de media/prova
 const mediaData = computed(() => {
   return occurrence.value?.status === 'resolved'
     ? occurrence.value?.resolutionProof
@@ -150,21 +164,18 @@ const mediaIcon = computed(() => {
 const isImage = computed(() => mediaData.value?.type?.includes('image'));
 const isVideo = computed(() => mediaData.value?.type?.includes('video'));
 
-// Status (mantido como estava)
 const formattedStatus = computed(() => {
   return occurrence.value?.status === 'pending' ? 'PENDENTE' : 'RESOLVIDO';
 });
 
 const statusClass = computed(() => {
   return occurrence.value?.status === 'pending' 
-    ? 'bg-warning text-dark'  // Amarelo
-    : 'bg-success text-white'; // Verde
+    ? 'bg-warning text-dark'
+    : 'bg-success text-white';
 });
 </script>
 
 <style scoped>
-/* Estilos originais mantidos integralmente */
-
 .text-white p {
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -181,7 +192,28 @@ const statusClass = computed(() => {
   transform: translateX(-2px);
 }
 
-/* Barra de rolagem personalizada */
+/* Estilos para Materiais */
+.material-item {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  padding: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.material-name {
+  margin: 0 0.3rem;
+}
+
+.material-quantity {
+  background-color: #e9ecef;
+  border-radius: 10px;
+  padding: 0 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Barra de rolagem */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -197,7 +229,7 @@ const statusClass = computed(() => {
   background: #4aa8a5;
 }
 
-/* Estilos do modal (minimalista) */
+/* Modal */
 .modal-backdrop {
   position: fixed;
   top: 0;
