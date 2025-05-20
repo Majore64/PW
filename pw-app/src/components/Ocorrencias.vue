@@ -52,7 +52,7 @@
           </button>
         </div>
 
-        <!-- Barra de pesquisa -->
+        <!-- Barra de pesquisa e botão de criar ocorrencia -->
         <div class="search-wrapper">
           <input 
             type="text" 
@@ -70,7 +70,8 @@
           <PopupModal 
             v-if="popupTriggers.buttonTrigger" 
             closePopup 
-            :TogglePopup="() => togglePopup('buttonTrigger')" 
+            :TogglePopup="() => togglePopup('buttonTrigger')"
+            @ocorrencia-criada="carregarOcorrencias"
           />
         </div>
       </div>
@@ -142,22 +143,7 @@ export default {
       paginaAtual: 1,
       itensPorPagina: 9,
 
-      ocorrencias: [
-        { id: 1, alertaPor: 'Joana Silva', tipo: 'Limpeza', area: 'Piso 1, sala 1', data: '12/03/2025', alocadoA: 'João Ribeiro' },
-        { id: 2, alertaPor: 'Pedro Costa', tipo: 'Material médico desarrumado', area: 'Piso 2, sala 1', data: '15/03/2025', alocadoA: 'Maria Santos' },
-        { id: 3, alertaPor: 'Ana Sousa', tipo: 'Medicamentos sem rótulo', area: 'Piso 1, sala 2', data: '18/03/2025', alocadoA: 'Ana Lima' },
-        { id: 4, alertaPor: 'Carlos Mendes', tipo: 'Limpeza', area: 'Piso 1, sala 3', data: '20/03/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 5, alertaPor: 'Rita Pereira', tipo: 'Material médico desarrumado', area: 'Piso 1, sala 3', data: '22/03/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 6, alertaPor: 'Miguel Rocha', tipo: 'Medicamentos sem rótulo', area: 'Piso 1, sala 3', data: '25/03/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 7, alertaPor: 'Sofia Martins', tipo: 'Limpeza', area: 'Piso 1, sala 3', data: '28/03/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 8, alertaPor: 'Tiago Almeida', tipo: 'Material médico desarrumado', area: 'Piso 1, sala 3', data: '30/03/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 9, alertaPor: 'Beatriz Lopes', tipo: 'Medicamentos sem rótulo', area: 'Piso 1, sala 3', data: '02/04/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 10, alertaPor: 'Ricardo Fernandes', tipo: 'Limpeza', area: 'Piso 1, sala 3', data: '05/04/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 11, alertaPor: 'Mariana Carvalho', tipo: 'Material médico desarrumado', area: 'Piso 1, sala 3', data: '08/04/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 12, alertaPor: 'André Sousa', tipo: 'Medicamentos sem rótulo', area: 'Piso 1, sala 3', data: '10/04/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 13, alertaPor: 'Inês Ribeiro', tipo: 'Limpeza', area: 'Piso 1, sala 3', data: '12/04/2025', alocadoA: 'Carlos Nogueira' },
-        { id: 14, alertaPor: 'João Martins', tipo: 'Material médico desarrumado', area: 'Piso 1, sala 3', data: '15/04/2025', alocadoA: 'Carlos Nogueira' }
-      ],
+      ocorrencias: [],
 
       tabs: [
         { id: 'todos', label: 'Todas Ocorrências' },
@@ -218,32 +204,51 @@ export default {
   },
 
   methods: {
-    pesquisar() {
-      this.paginaAtual = 1;
-    },
-    verPerfil(ocorrencia) {
-      this.$router.push({ name: 'OcorrenciaPerfil', params: { id: ocorrencia.id } });
-    },
-    proximaPagina() {
-      if (this.paginaAtual < this.totalPaginas) {
-        this.paginaAtual++;
-      }
-    },
-    paginaAnterior() {
-      if (this.paginaAtual > 1) {
-        this.paginaAtual--;
-      }
-    },
-    irParaPagina(n) {
-      this.paginaAtual = n;
-    },
-    togglePopup(trigger) {
-      this.popupTriggers[trigger] = !this.popupTriggers[trigger];
+  pesquisar() {
+    this.paginaAtual = 1;
+  },
+
+  verPerfil(ocorrencia) {
+    this.$router.push({ name: 'OcorrenciaPerfil', params: { id: ocorrencia.id } });
+  },
+
+  proximaPagina() {
+    if (this.paginaAtual < this.totalPaginas) {
+      this.paginaAtual++;
     }
   },
 
+  paginaAnterior() {
+    if (this.paginaAtual > 1) {
+      this.paginaAtual--;
+    }
+  },
+
+  irParaPagina(n) {
+    this.paginaAtual = n;
+  },
+
+  togglePopup(trigger) {
+    this.popupTriggers[trigger] = !this.popupTriggers[trigger];
+  },
+
+  carregarOcorrencias() {
+    const ocorrenciasRaw = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+
+    this.ocorrencias = ocorrenciasRaw.map((oc, index) => ({
+      id: index + 1,
+      alertaPor: oc.nomeFuncionario,
+      tipo: oc.tipoOcorrencia,
+      area: oc.localizacao,
+      data: oc.data,
+      alocadoA: '-'
+    }));
+  }
+},
+
   mounted() {
-    this.$emit('update-title', 'Ocorrências');
+    this.$emit('update-title', 'Ocorrências'),
+    this.carregarOcorrencias();
   }
 };
 </script>

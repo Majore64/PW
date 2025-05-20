@@ -56,10 +56,19 @@ export default {
   },
   methods: {
     handleSubmit() {
-      // Aqui podes fazer o que quiseres com os dados, ex: enviar para uma API ou consola
-      console.log("Dados submetidos:", this.form);
+      // Buscar ocorrências existentes no localStorage (ou criar lista vazia)
+      const ocorrenciasExistentes = JSON.parse(localStorage.getItem('ocorrencias')) || [];
 
-      // Após o envio, podes limpar o formulário ou fechar o popup
+      // Adicionar nova ocorrência
+      ocorrenciasExistentes.push({ ...this.form });
+
+      // Guardar novamente no localStorage
+      localStorage.setItem('ocorrencias', JSON.stringify(ocorrenciasExistentes));
+
+      // Emitir evento para o componente pai atualizar a tabela
+      this.$emit('ocorrencia-criada');
+
+      // Fechar popup
       this.TogglePopup();
     }
   }
