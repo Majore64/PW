@@ -1,4 +1,3 @@
-
 <template>
   <div class="historico-page">
     <div class="header">
@@ -7,36 +6,52 @@
     </div>
 
     <table class="tabela">
-          <thead>
-      <tr>
-        <th>Tipo</th>
-        <th>Localização</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody>
-          <tr v-for="(ocorrencia, index) in store.lista" :key="index">
-            <td>{{ ocorrencia.tipo }}</td>
-            <td>{{ ocorrencia.email }}</td>
-            <td>{{ ocorrencia.zona }} - {{ ocorrencia.andar }}</td>
-            <td>{{ ocorrencia.estado }}</td>
-            <td>
-              <button @click="$router.push({ name: 'DetalhesOcorrencia', params: { id: index } })">
-                ➔
-              </button>
-            </td>
-          </tr>
-        </tbody>
-
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Email</th>
+          <th>Localização</th>
+          <th>Estado</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="ocorrencia in ocorrencias" :key="ocorrencia.id">
+          <td>{{ ocorrencia.tipo }}</td>
+          <td>{{ ocorrencia.email }}</td>
+          <td>{{ ocorrencia.zona }} - {{ ocorrencia.andar }}</td>
+          <td>{{ ocorrencia.estado || 'Em Análise' }}</td>
+          <td>
+            <button @click="verDetalhes(ocorrencia.id)" class="btn-detalhes">
+              ➔
+            </button>
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
 </template>
 
 <script setup>
-
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useOcorrenciasStore } from '@/stores/ocorrencias'
+
+const router = useRouter()
 const store = useOcorrenciasStore()
-console.log('Guardadas:', store.lista)
+const ocorrencias = ref([])
+
+onMounted(() => {
+  // Get occurrences from localStorage
+  const savedOcorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
+  ocorrencias.value = savedOcorrencias
+  console.log('Ocorrências carregadas:', ocorrencias.value)
+})
+
+const verDetalhes = (id) => {
+  console.log('Abrindo detalhes da ocorrência:', id)
+  router.push(`/detalhes/${id}`)
+}
 </script>
 
 <style scoped>
@@ -122,5 +137,19 @@ console.log('Guardadas:', store.lista)
 .tabela th {
   background-color: #d8ecfb;
   color: #12203c;
+}
+
+.btn-detalhes {
+  background-color: #1c2d50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-detalhes:hover {
+  background-color: #2a4171;
 }
 </style>

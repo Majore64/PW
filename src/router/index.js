@@ -3,7 +3,6 @@ import HomeView from '@/components/HomeView.vue'
 import TipoOcorrenciaView from '@/components/TipoOcorrenciaView.vue'
 import CriarOcorrencia from '@/components/CriarOcorrencia.vue'
 import HistoricoOcorrenciasView from '@/components/HistoricoOcorrenciasView.vue'
-import DetalhesOcorrenciaView from '@/components/DetalhesOcorrenciaView.vue'
 import Login from '@/components/Login.vue'
 import ChatBot from '@/components/ChatBot.vue'
 
@@ -39,16 +38,16 @@ const routes = [
     component: HistoricoOcorrenciasView
   },
   {
-    path: '/detalhes/:id', // <-- NOVA ROTA
+    path: '/detalhes/:id',
     name: 'DetalhesOcorrencia',
-    component: DetalhesOcorrenciaView
+    component: () => import('@/components/DetalhesOcorrenciaView.vue')
   },
-  { 
+  {
     path: '/login',
     name: 'Login',
     component: Login
   }
-  
+
 ]
 
 const router = createRouter({
