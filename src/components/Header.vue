@@ -11,7 +11,10 @@
 
     <!-- Direita: Login e Sign Up -->
     <div class="nav-buttons right">
-      <button class="nav-btn filled" @click="$emit('ativarChatBot')">🤖 ChatBot</button>
+      <button class="nav-btn filled" @click="$emit('ativarChatBot')">
+          <img src="@/assets/Chatbot.png" alt="ChatBot" style="height: 20px; margin-right: 8px;" />
+          ChatBot
+        </button>
       <button @click="goToLogin" class="nav-btn">Login</button>
     </div>
   </header>
