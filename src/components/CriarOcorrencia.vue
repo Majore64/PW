@@ -42,16 +42,23 @@
               <option disabled value="">Selecionar material</option>
               <option v-for="mat in materiais" :key="mat">{{ mat }}</option>
             </select>
+            <input
+              type="number"
+              min="1"
+              v-model.number="quantidadeSelecionada"
+              placeholder="Qtd."
+              style="width: 70px"
+            />
             <button type="button" @click="adicionarMaterial">Adicionar</button>
           </div>
 
           <div class="materiais-lista">
             <span
               v-for="mat in materiaisEscolhidos"
-              :key="mat"
+              :key="mat.nome"
               class="material-tag">
-              {{ mat }}
-              <button @click="removerMaterial(mat)">❌</button>
+              {{ mat.nome }} ({{ mat.quantidade }})
+              <button @click="removerMaterial(mat.nome)">❌</button>
             </span>
           </div>
                 <label>Descrição</label>
@@ -98,16 +105,28 @@
   const store = useOcorrenciasStore()
   const materiais = ['Luvas', 'Seringas', 'Máscaras', 'Leito', 'Cateter']
   const materialSelecionado = ref('')
+  const quantidadeSelecionada = ref(1)
   const materiaisEscolhidos = ref([])
 
-  function adicionarMaterial() {
-      if (materialSelecionado.value && !materiaisEscolhidos.value.includes(materialSelecionado.value)) {
-        materiaisEscolhidos.value.push(materialSelecionado.value)
-      }
+      function adicionarMaterial() {
+        if (
+          materialSelecionado.value &&
+          quantidadeSelecionada.value > 0 &&
+          !materiaisEscolhidos.value.some(m => m.nome === materialSelecionado.value)
+        ) {
+          materiaisEscolhidos.value.push({
+            nome: materialSelecionado.value,
+            quantidade: quantidadeSelecionada.value
+          })
+          // Limpa seleção
+          materialSelecionado.value = ''
+          quantidadeSelecionada.value = 1
         }
-        function removerMaterial(material) {
-      materiaisEscolhidos.value = materiaisEscolhidos.value.filter(m => m !== material)
-    }
+      }
+
+      function removerMaterial(nome) {
+        materiaisEscolhidos.value = materiaisEscolhidos.value.filter(m => m.nome !== nome)
+      }
   onMounted(() => {
     tipoSelecionado.value = route.query.tipo || ''
 
@@ -129,18 +148,17 @@
     // FUNÇÃO PARA GUARDAR NA STORE
       function criarOcorrencia() {
         const novaOcorrencia = {
-          id: Date.now().toString(),
-          tipo: tipoSelecionado.value,
-          data: new Date().toLocaleString(),
-          zona: zona.value,
-          andar: andar.value,
-          email: email.value,
-          materiais: materiaisEscolhidos.value,
-          descricao: descricao.value,
-          imagem: imagemBase64.value, // Add the image to the occurrence data
-          status: 'Em Análise'
-        }
-
+            id: Date.now().toString(),
+            tipo: tipoSelecionado.value,
+            data: new Date().toLocaleString(),
+            zona: zona.value,
+            andar: andar.value,
+            email: email.value,
+            materiais: materiaisEscolhidos.value, // Agora é array de objetos {nome, quantidade}
+            descricao: descricao.value,
+            imagem: imagemBase64.value,
+            status: 'Em Análise'
+          }
         // Save to store
         store.adicionarOcorrencia(novaOcorrencia)
 

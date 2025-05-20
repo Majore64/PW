@@ -73,11 +73,6 @@
             alt="Mapa do Hospital"
             class="map-image"
           />
-          <div class="hospital-marker">
-            <div class="red-marker">
-              <MapPin class="marker-icon" />
-            </div>
-          </div>
         </div>
 
         <!-- Images -->
@@ -284,26 +279,10 @@ onMounted(() => {
   display: none;
 }
 
-.hospital-marker {
-  position: absolute;
-  top: 25%;
-  right: 25%;
-}
-
-.red-marker {
-  background-color: #ff0004;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+.hospital-marker,
+.red-marker,
 .marker-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: white;
+  display: none;
 }
 
 .images-section {

@@ -1,7 +1,7 @@
 <template>
   <div class="historico-page">
-    <div class="header">
-      <button @click="$router.back()" class="back-button">←</button>
+     <div class="header">
+      <button @click="router.back()" class="back-button">←</button>
       <h2>Histórico de Ocorrências</h2>
     </div>
 
