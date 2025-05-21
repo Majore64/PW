@@ -27,12 +27,21 @@
     <!-- Lista de Cards -->
     <div class="container mb-5">
       <template v-if="pendingOccurrences.length">
-        <FinalizeOccurrenceCard
-          v-for="occurrence in pendingOccurrences"
-          :key="occurrence.id"
-          :occurrence="occurrence"
-          class="mb-4"
-        />
+        <div v-for="occurrence in pendingOccurrences" :key="occurrence.id" class="mb-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ formatType(occurrence.type) }}</h5>
+              <p class="card-text">Criado por: {{ occurrence.createdByName }}</p>
+              <p class="card-text">Localização: {{ occurrence.location }}</p>
+              <router-link 
+                :to="`/finalizar/ocorrencia/${occurrence.id}`"
+                class="btn btn-primary"
+              >
+                Finalizar
+              </router-link>
+            </div>
+          </div>
+        </div>
       </template>
       <template v-else>
         <div class="text-center text-muted py-4">
@@ -47,11 +56,38 @@
 <script setup>
 import { computed } from 'vue';
 import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
-import FinalizeOccurrenceCard from '@/components/FinalizeOccurrenceCard.vue';
 
 const store = useOccurrencesStore();
 
 const pendingOccurrences = computed(() => {
   return store.userPendingOccurrences(store.currentUser?.id);
 });
+
+const formatType = (type) => {
+  const types = {
+    'falta_material': 'Falta de Material',
+    'local_sujo': 'Local Sujo',
+    'equipamento_danificado': 'Equipamento Danificado',
+    'material_fora_lugar': 'Material Fora do Lugar'
+  };
+  return types[type] || type;
+};
 </script>
+
+<style scoped>
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+  background-color: #5cbdb9;
+  border-color: #5cbdb9;
+}
+</style>

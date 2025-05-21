@@ -4,12 +4,13 @@ export const useOccurrencesStore = defineStore('occurrences', {
   state: () => ({
     occurrences: JSON.parse(localStorage.getItem('occurrences')) || [],
     currentUser: JSON.parse(localStorage.getItem('user')) || null,
+    completedCount: JSON.parse(localStorage.getItem(`completedCount_${JSON.parse(localStorage.getItem('user'))?.id}`)) || 0,
     equipmentSuggestions: {
-  local_sujo: ['Esfregona', 'Vassoura', 'Luvas', 'Aspirador', 'Desinfetante'],
-  equipamento_danificado: ['Ferramentas', 'Peças de reposição', 'Multímetro'],
-  falta_material: ['Material médico', 'Medicamentos', 'Equipamento cirúrgico', 'Luvas estéreis'],
-  material_fora_lugar: ['Carrinho de transporte', 'Etiquetas', 'Sistema de armazenamento']
-}
+      local_sujo: ['Esfregona', 'Vassoura', 'Luvas', 'Aspirador', 'Desinfetante'],
+      equipamento_danificado: ['Ferramentas', 'Peças de reposição', 'Multímetro'],
+      falta_material: ['Material médico', 'Medicamentos', 'Equipamento cirúrgico', 'Luvas estéreis'],
+      material_fora_lugar: ['Carrinho de transporte', 'Etiquetas', 'Sistema de armazenamento']
+    }
   }),
   actions: {
     addOccurrence(occurrence) {
@@ -28,12 +29,15 @@ export const useOccurrencesStore = defineStore('occurrences', {
       localStorage.setItem('occurrences', JSON.stringify(this.occurrences))
     },
     resolveOccurrence({ id, comment, proof }) {
-      const occurrence = this.occurrences.find(o => o.id === id)
-      if (occurrence) {
+      try {
+        const occurrence = this.occurrences.find(o => o.id === id)
+        if (!occurrence) return false
+
         occurrence.status = 'resolved'
         occurrence.resolvedAt = new Date().toISOString()
         occurrence.resolutionComment = comment
         occurrence.resolvedBy = this.currentUser.id
+        
         if (proof) {
           occurrence.resolutionProof = {
             type: proof.type,
@@ -42,7 +46,26 @@ export const useOccurrencesStore = defineStore('occurrences', {
             uploadedAt: new Date().toISOString()
           }
         }
+        
+        this.completedCount++
+        const userId = this.currentUser?.id
+        if (userId) {
+          localStorage.setItem(`completedCount_${userId}`, JSON.stringify(this.completedCount))
+        }
         localStorage.setItem('occurrences', JSON.stringify(this.occurrences))
+        
+        console.log(`Ocorrência ${id} finalizada. Contador: ${this.completedCount}`)
+        return this.completedCount % 3 === 0
+      } catch (error) {
+        console.error('Erro ao finalizar ocorrência:', error)
+        return false
+      }
+    },
+    resetCompletedCount() {
+      const userId = this.currentUser?.id
+      this.completedCount = 0
+      if (userId) {
+        localStorage.setItem(`completedCount_${userId}`, JSON.stringify(0))
       }
     }
   },

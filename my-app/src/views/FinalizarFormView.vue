@@ -79,7 +79,7 @@
                 >
                 <button 
                   type="button"
-                  @click="fileInput.click()"
+                  @click="() => fileInput && fileInput.click()"
                   class="btn btn-outline-primary w-100"
                 >
                   <i class="bi bi-upload me-2"></i>
@@ -134,6 +134,40 @@
         Ocorrência não encontrada ou já finalizada
       </div>
     </div>
+
+    <!-- Popup de Avaliação -->
+    <div v-if="showFeedback" class="feedback-modal-overlay">
+      <div class="feedback-modal">
+        <div class="feedback-header">
+          <h3>Como avalias o nosso serviço?</h3>
+          <button @click="closeFeedback" class="close-btn">&times;</button>
+        </div>
+        
+        <div class="rating-stars">
+          <span 
+            v-for="star in 5" 
+            :key="star"
+            @click="setRating(star)"
+            :class="{ 'active': star <= currentRating }"
+          >★</span>
+        </div>
+        
+        <textarea
+          v-model="feedbackComment"
+          placeholder="Deixe seu comentário (opcional)..."
+          class="feedback-comment"
+          rows="3"
+        ></textarea>
+        
+        <button 
+          @click="submitRating"
+          :disabled="currentRating === 0"
+          class="submit-btn"
+        >
+          Enviar Avaliação
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -141,10 +175,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOccurrencesStore } from '@/stores/useOccurrencesStore'
+import { useFeedbackStore } from '@/stores/UseFeedbackStore'
 
 const route = useRoute()
 const router = useRouter()
 const store = useOccurrencesStore()
+const feedbackStore = useFeedbackStore()
 
 // Estados reativos
 const loading = ref(true)
@@ -155,6 +191,9 @@ const filePreview = ref(null)
 const fileType = ref(null)
 const fileName = ref('')
 const fileData = ref(null)
+const showFeedback = ref(false)
+const currentRating = ref(0)
+const feedbackComment = ref('')
 
 // Formatadores
 const formatDate = (dateString) => {
@@ -203,7 +242,7 @@ const handleFileUpload = (event) => {
 }
 
 const removeFile = () => {
-  fileInput.value.value = ''
+  if (fileInput.value) fileInput.value.value = ''
   filePreview.value = null
   fileData.value = null
   fileName.value = ''
@@ -213,6 +252,10 @@ const removeFile = () => {
 onMounted(async () => {
   try {
     const occurrenceId = Number(route.params.id)
+    if (isNaN(occurrenceId)) {
+      throw new Error('ID inválido')
+    }
+    
     occurrence.value = store.getOccurrenceById(occurrenceId)
     
     if (!occurrence.value || occurrence.value.status === 'resolved') {
@@ -220,26 +263,59 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Erro ao carregar ocorrência:', error)
+    router.push('/finalizar')
   } finally {
     loading.value = false
   }
 })
 
-// Submissão
-const handleSubmit = () => {
-  if (!resolutionComment.value.trim()) return
+// Lógica de avaliação
+const setRating = (rating) => {
+  currentRating.value = rating
+}
 
-  store.resolveOccurrence({
-    id: occurrence.value.id,
-    comment: resolutionComment.value.trim(),
-    proof: fileData.value ? {
-      data: fileData.value,
-      type: fileType.value,
-      name: fileName.value
-    } : null
-  })
-
+const closeFeedback = () => {
+  showFeedback.value = false
   router.push('/finalizar')
+}
+
+const submitRating = () => {
+  if (currentRating.value > 0) {
+    feedbackStore.addRating(currentRating.value, feedbackComment.value)
+    closeFeedback()
+  }
+}
+
+// Submissão
+const handleSubmit = async () => {
+  try {
+    if (!resolutionComment.value.trim()) {
+      alert('Por favor, descreva a solução aplicada')
+      return
+    }
+
+    const shouldShowFeedback = store.resolveOccurrence({
+      id: occurrence.value.id,
+      comment: resolutionComment.value.trim(),
+      proof: fileData.value ? {
+        data: fileData.value,
+        type: fileType.value,
+        name: fileName.value
+      } : null
+    })
+
+    if (shouldShowFeedback) {
+      setTimeout(() => {
+        showFeedback.value = true
+      }, 1000)
+    } else {
+      router.push('/finalizar')
+    }
+  } catch (error) {
+    console.error('Erro ao finalizar:', error)
+    alert('Ocorreu um erro ao finalizar. Tente novamente.')
+    router.push('/finalizar')
+  }
 }
 </script>
 
@@ -268,5 +344,89 @@ const handleSubmit = () => {
 .alert-info {
   background-color: #e2f3fd;
   border-color: #b8e2fb;
+}
+
+.feedback-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.feedback-modal {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.rating-stars {
+  font-size: 2.5rem;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.rating-stars span {
+  cursor: pointer;
+  color: #ccc;
+  margin: 0 5px;
+  transition: color 0.2s;
+}
+
+.rating-stars span.active {
+  color: #FFD700;
+}
+
+.feedback-comment {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  resize: vertical;
+}
+
+.submit-btn {
+  background-color: #5cbdb9;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.submit-btn:not(:disabled):hover {
+  background-color: #4aa8a5;
 }
 </style>
