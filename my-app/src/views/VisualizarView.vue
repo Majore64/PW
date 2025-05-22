@@ -16,8 +16,26 @@
       </button>
     </div>
 
+    <!-- Mensagem de erro de autenticação -->
+    <div v-if="!isAuthenticated" class="container my-4 text-center">
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Você precisa estar autenticado para acessar esta página.
+        <div class="mt-2">Redirecionando para o login...</div>
+      </div>
+    </div>
+
+    <!-- Mensagem de ocorrência não encontrada -->
+    <div v-else-if="notFound" class="container my-4 text-center">
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Ocorrência não encontrada ou você não tem permissão para visualizá-la.
+        <div class="mt-2">Redirecionando...</div>
+      </div>
+    </div>
+
     <!-- Container Principal -->
-    <div class="container my-4">
+    <div v-else-if="occurrence" class="container my-4">
       <div class="border border-secondary rounded-3 bg-white shadow-sm overflow-hidden">
         <!-- Conteúdo -->
         <div class="p-3">
@@ -104,13 +122,39 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
 
 const route = useRoute();
+const router = useRouter();
 const store = useOccurrencesStore();
 const showMedia = ref(false);
+const notFound = ref(false);
+const isAuthenticated = ref(true);
+
+// Verificar autenticação e se a ocorrência existe e pertence ao usuário atual
+onMounted(() => {
+  if (!store.currentUser) {
+    console.warn('Nenhum usuário logado. Redirecionando para login.');
+    isAuthenticated.value = false;
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+    return;
+  }
+
+  const id = Number(route.params.id);
+  const foundOccurrence = store.getOccurrenceById(id);
+  
+  if (!foundOccurrence) {
+    console.warn('Ocorrência não encontrada ou acesso não autorizado.');
+    notFound.value = true;
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 2000);
+  }
+});
 
 const occurrence = computed(() => store.getOccurrenceById(Number(route.params.id)));
 
@@ -147,6 +191,7 @@ const hasMedia = computed(() => {
 });
 
 const mediaSrc = computed(() => {
+  if (!mediaData.value) return '';
   return `data:${mediaData.value.type};base64,${mediaData.value.data}`;
 });
 

@@ -19,8 +19,26 @@
       </button>
     </div>
 
+    <!-- Mensagem de erro de autenticação -->
+    <div v-if="!isAuthenticated" class="container my-4 text-center">
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Você precisa estar autenticado para acessar esta página.
+        <div class="mt-2">Redirecionando para o login...</div>
+      </div>
+    </div>
+
+    <!-- Mensagem de ocorrência não encontrada -->
+    <div v-else-if="notFound" class="container my-4 text-center">
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Ocorrência não encontrada ou você não tem permissão para finalizá-la.
+        <div class="mt-2">Redirecionando...</div>
+      </div>
+    </div>
+
     <!-- Conteúdo Principal -->
-    <div class="container my-4" v-if="occurrence">
+    <div class="container my-4" v-else-if="occurrence">
       <div class="border border-secondary rounded-3 bg-white shadow-sm overflow-hidden">
         <div class="p-4">
           <!-- Título -->
@@ -128,11 +146,8 @@
     </div>
 
     <!-- Loading/Error State -->
-    <div v-else class="text-center py-5">
-      <div v-if="loading" class="spinner-border text-primary"></div>
-      <div v-else class="alert alert-danger">
-        Ocorrência não encontrada ou já finalizada
-      </div>
+    <div v-else-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
     </div>
 
     <!-- Popup de Avaliação -->
@@ -194,6 +209,8 @@ const fileData = ref(null)
 const showFeedback = ref(false)
 const currentRating = ref(0)
 const feedbackComment = ref('')
+const isAuthenticated = ref(true)
+const notFound = ref(false)
 
 // Formatadores
 const formatDate = (dateString) => {
@@ -251,19 +268,48 @@ const removeFile = () => {
 // Carrega a ocorrência
 onMounted(async () => {
   try {
+    // Verificar autenticação
+    if (!store.currentUser) {
+      console.warn('Nenhum usuário logado. Redirecionando para login.')
+      isAuthenticated.value = false
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+      return
+    }
+
     const occurrenceId = Number(route.params.id)
     if (isNaN(occurrenceId)) {
       throw new Error('ID inválido')
     }
     
-    occurrence.value = store.getOccurrenceById(occurrenceId)
+    const foundOccurrence = store.getOccurrenceById(occurrenceId)
     
-    if (!occurrence.value || occurrence.value.status === 'resolved') {
-      router.push('/finalizar')
+    if (!foundOccurrence) {
+      console.warn('Ocorrência não encontrada ou acesso não autorizado.')
+      notFound.value = true
+      setTimeout(() => {
+        router.push('/finalizar')
+      }, 2000)
+      return
     }
+
+    if (foundOccurrence.status === 'resolved') {
+      console.warn('Ocorrência já finalizada.')
+      notFound.value = true
+      setTimeout(() => {
+        router.push('/finalizar')
+      }, 2000)
+      return
+    }
+    
+    occurrence.value = foundOccurrence
   } catch (error) {
     console.error('Erro ao carregar ocorrência:', error)
-    router.push('/finalizar')
+    notFound.value = true
+    setTimeout(() => {
+      router.push('/finalizar')
+    }, 2000)
   } finally {
     loading.value = false
   }

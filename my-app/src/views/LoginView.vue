@@ -23,6 +23,7 @@
 
 <script>
 /* global google */
+import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
 
 export default {
   name: "LoginPage",
@@ -66,7 +67,11 @@ export default {
     },
     handleCredentialResponse(response) {
       const user = this.decodeJWT(response.credential);
-      localStorage.setItem("user", JSON.stringify(user));
+      
+      // Usar o store para definir o usuário atual
+      const store = useOccurrencesStore();
+      store.setCurrentUser(user);
+      
       this.$router.push("/dashboard");
     },
     decodeJWT(token) {

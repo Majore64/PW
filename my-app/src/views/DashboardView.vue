@@ -9,65 +9,77 @@
       >
     </div>
 
-    <!--Texto -->
-    <div class="content">
-      <h1 class="text-center my-5 fs-2 text-secondary" style="font-family: 'Catamaran', sans-serif; font-weight: 900;">
-        OCORRÊNCIAS PENDENTES
-      </h1>
-    </div>
-     
-    <!-- Cards dinâmicos -->
-    <div class="occurrences-container mx-4">
-      <template v-if="oldestOccurrences && oldestOccurrences.length">
-        <OccurrenceCard 
-          v-for="occurrence in oldestOccurrences" 
-          :key="occurrence.id" 
-          :occurrence="occurrence"
-        />
-      </template>
-      <template v-else>
-        <div class="text-center text-muted py-4">
-          <i class="bi bi-check-circle fs-1"></i>
-          <p class="mt-2">Nenhuma ocorrência pendente</p>
-        </div>
-      </template>
+    <!-- Mensagem de erro de autenticação -->
+    <div v-if="!isAuthenticated" class="container my-5 text-center">
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Você precisa estar autenticado para acessar esta página.
+        <div class="mt-2">Redirecionando para o login...</div>
+      </div>
     </div>
 
-    <!-- Menu Inferior -->
-    <div class="bottom-nav border-top p-4" style="height: 110px; margin-top: -15px;">
-      <!-- Linha 1: Criar | Finalizar | Histórico -->
-      <div class="d-flex justify-content-around mb-5 mt-4">
-        <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/criar')">
-          <i class="bi bi-plus-lg d-block text-secondary" style="font-size: 40px;"></i>
-          <span class="d-block large">Criar</span>
-          <span class="d-block large">ocorrências</span>
-        </button>
-        <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/finalizar')">
-          <i class="bi bi-check-lg d-block text-secondary" style="font-size: 40px;"></i>
-          <span class="d-block large">Finalizar</span>
-          <span class="d-block large">ocorrências</span>
-        </button>
-        <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/historico')">
-          <i class="bi bi-clock d-block text-secondary" style="font-size: 40px;"></i>
-          <span class="d-block large">Histórico</span>
-        </button>
+    <div v-else>
+      <!--Texto -->
+      <div class="content">
+        <h1 class="text-center my-5 fs-2 text-secondary" style="font-family: 'Catamaran', sans-serif; font-weight: 900;">
+          OCORRÊNCIAS PENDENTES
+        </h1>
+      </div>
+       
+      <!-- Cards dinâmicos -->
+      <div class="occurrences-container mx-4">
+        <template v-if="oldestOccurrences && oldestOccurrences.length">
+          <OccurrenceCard 
+            v-for="occurrence in oldestOccurrences" 
+            :key="occurrence.id" 
+            :occurrence="occurrence"
+          />
+        </template>
+        <template v-else>
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-check-circle fs-1"></i>
+            <p class="mt-2">Nenhuma ocorrência pendente</p>
+          </div>
+        </template>
       </div>
 
-      <!-- Linha 2: (vazio) | Perfil | (vazio) -->
-      <div class="d-flex justify-content-around">
-        <div style="width: 30%;"></div>
-        <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/perfil')">
-          <i class="bi bi-person d-block text-secondary" style="font-size: 40px;"></i>
-          <span class="d-block large">Perfil</span>
-        </button>
-        <div style="width: 30%;"></div>
+      <!-- Menu Inferior -->
+      <div class="bottom-nav border-top p-4" style="height: 110px; margin-top: -15px;">
+        <!-- Linha 1: Criar | Finalizar | Histórico -->
+        <div class="d-flex justify-content-around mb-5 mt-4">
+          <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/criar')">
+            <i class="bi bi-plus-lg d-block text-secondary" style="font-size: 40px;"></i>
+            <span class="d-block large">Criar</span>
+            <span class="d-block large">ocorrências</span>
+          </button>
+          <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/finalizar')">
+            <i class="bi bi-check-lg d-block text-secondary" style="font-size: 40px;"></i>
+            <span class="d-block large">Finalizar</span>
+            <span class="d-block large">ocorrências</span>
+          </button>
+          <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/historico')">
+            <i class="bi bi-clock d-block text-secondary" style="font-size: 40px;"></i>
+            <span class="d-block large">Histórico</span>
+          </button>
+        </div>
+
+        <!-- Linha 2: (vazio) | Perfil | (vazio) -->
+        <div class="d-flex justify-content-around">
+          <div style="width: 30%;"></div>
+          <button class="btn p-0 text-center" style="width: 30%;" @click="$router.push('/perfil')">
+            <i class="bi bi-person d-block text-secondary" style="font-size: 40px;"></i>
+            <span class="d-block large">Perfil</span>
+          </button>
+          <div style="width: 30%;"></div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useOccurrencesStore } from '@/stores/useOccurrencesStore'
 import OccurrenceCard from '@/components/OccurrenceCard.vue'
 
@@ -76,12 +88,26 @@ export default {
   components: { OccurrenceCard },
   setup() {
     const store = useOccurrencesStore()
+    const router = useRouter()
+    const isAuthenticated = ref(true)
+    
+    // Verificar se há um usuário logado
+    onMounted(() => {
+      if (!store.currentUser) {
+        console.warn('Nenhum usuário logado. Redirecionando para login.')
+        isAuthenticated.value = false
+        setTimeout(() => {
+          router.push('/')
+        }, 2000)
+      }
+    })
     
     const oldestOccurrences = computed(() => {
-      return store.oldestUserOccurrences(store.currentUser?.id, 2)
+      if (!store.currentUser) return []
+      return store.oldestUserOccurrences(store.currentUserId, 2)
     })
 
-    return { oldestOccurrences }
+    return { oldestOccurrences, isAuthenticated }
   }
 }
 </script>
