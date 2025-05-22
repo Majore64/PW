@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useFeedbackStore } from '@/stores/useFeedbackStore'
+import { useFeedbackStore } from '@/stores/UseFeedbackStore'
 
 const props = defineProps({
   show: Boolean
