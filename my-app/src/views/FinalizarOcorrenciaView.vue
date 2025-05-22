@@ -28,19 +28,7 @@
     <div class="container mb-5">
       <template v-if="pendingOccurrences.length">
         <div v-for="occurrence in pendingOccurrences" :key="occurrence.id" class="mb-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{ formatType(occurrence.type) }}</h5>
-              <p class="card-text">Criado por: {{ occurrence.createdByName }}</p>
-              <p class="card-text">Localização: {{ occurrence.location }}</p>
-              <router-link 
-                :to="`/finalizar/ocorrencia/${occurrence.id}`"
-                class="btn btn-primary"
-              >
-                Finalizar
-              </router-link>
-            </div>
-          </div>
+          <FinalizeOccurrenceCard :occurrence="occurrence" />
         </div>
       </template>
       <template v-else>
@@ -56,6 +44,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
+import FinalizeOccurrenceCard from '@/components/FinalizeOccurrenceCard.vue';
 
 const store = useOccurrencesStore();
 
