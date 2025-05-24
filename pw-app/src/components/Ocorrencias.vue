@@ -99,8 +99,13 @@
               <td>{{ ocorrencia.data }}</td>
               <td>{{ ocorrencia.alocadoA }}</td>
               <td>
-                <button @click="verPerfil(ocorrencia)" class="action-btn">
-                  <span class="validate-button">validar</span>
+                <button 
+                  @click="verPerfil(ocorrencia)" 
+                  class="action-btn" 
+                  :class="{ 'validado': ocorrencia.validado }"
+                  :disabled="ocorrencia.validado"
+                  >
+                  <span class="validate-button">{{ ocorrencia.validado ? 'validado' : 'validar' }}</span>
                 </button>
               </td>
             </tr>
@@ -147,9 +152,9 @@ export default {
 
       tabs: [
         { id: 'todos', label: 'Todas Ocorrências' },
-        { id: 'enfermeiros', label: 'Enfermeiros' },
-        { id: 'medicos', label: 'Médicos' },
-        { id: 'limpeza', label: 'Funcionários de Limpeza' }
+        { id: 'materialFalta', label: 'Material em falta' },
+        { id: 'materialMAlocado', label: 'Material mal alocado' },
+        { id: 'limpeza', label: 'Necessário limpeza' }
       ]
     };
   },
@@ -158,12 +163,12 @@ export default {
     ocorrenciasFiltradas() {
       let filtradas = [...this.ocorrencias];
 
-      if (this.filtroAtivo === 'enfermeiros') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('material médico desarrumado'));
-      } else if (this.filtroAtivo === 'medicos') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('medicamentos sem rótulo'));
+      if (this.filtroAtivo === 'materialFalta') {
+        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('material em falta'));
+      } else if (this.filtroAtivo === 'materialMAlocado') {
+        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('material mal alocado'));
       } else if (this.filtroAtivo === 'limpeza') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('limpeza'));
+        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('necessario limpeza'));
       }
 
       if (this.termoPesquisa) {
@@ -182,12 +187,12 @@ export default {
     totalPaginas() {
       let total = [...this.ocorrencias];
 
-      if (this.filtroAtivo === 'enfermeiros') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('material médico desarrumado'));
-      } else if (this.filtroAtivo === 'medicos') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('medicamentos sem rótulo'));
+      if (this.filtroAtivo === 'materialFalta') {
+        total = total.filter(o => o.tipo.toLowerCase().includes('material em falta'));
+      } else if (this.filtroAtivo === 'materialMAlocado') {
+        total = total.filter(o => o.tipo.toLowerCase().includes('material mal alocado'));
       } else if (this.filtroAtivo === 'limpeza') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('limpeza'));
+        total = total.filter(o => o.tipo.toLowerCase().includes('necessário limpeza'));
       }
 
       if (this.termoPesquisa) {
@@ -241,7 +246,8 @@ export default {
       tipo: oc.tipoOcorrencia,
       area: oc.localizacao,
       data: oc.data,
-      alocadoA: '-'
+      alocadoA: oc.alocadoA,
+      validado: oc.validado 
     }));
   }
 },
@@ -453,7 +459,7 @@ min-width: 800px; /* Largura mínima para evitar compressão */
 
 .ocorrencias-table th:nth-child(1) { width: 20%; }
 .ocorrencias-table th:nth-child(2) { width: 20%; }
-.ocorrencias-table th:nth-child(3) { width: 30%; }
+.ocorrencias-table th:nth-child(3) { width: 20%; }
 .ocorrencias-table th:nth-child(4) { width: 20%; }
 .ocorrencias-table th:nth-child(5) { width: 20%; }
 .ocorrencias-table th:nth-child(6) { width: 20%; }
@@ -537,5 +543,13 @@ cursor: not-allowed;
 background-color: #03B5AA;
 color: white;
 border-color: #03B5AA;
+}
+
+.action-btn.validado {
+  border-color: #304D6D;
+}
+
+.action-btn.validado .validate-button {
+  color: #304D6D;
 }
 </style>
