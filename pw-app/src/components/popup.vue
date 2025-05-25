@@ -54,10 +54,13 @@
                 @change="handleMaterialChange(index)"
               >
                 <option disabled value="">Selecione o material</option>
-                <option>Esfregona</option>
-                <option>Lixívia</option>
-                <option>Vassoura</option>
-                <option>Luvas</option>
+                <option 
+                  v-for="mat in materiaisDisponiveis" 
+                  :key="mat.id"
+                  :value="mat.nome"
+                >
+                  {{ mat.nome }}
+                </option>
               </select>
 
               <input
@@ -65,7 +68,9 @@
                 type="number"
                 min="1"
                 class="form-input quantidade-input"
+                :class="{ 'input-error': material.quantidadeInvalida }"
                 placeholder="Qtd."
+                @input="validarQuantidade(index)"
               />
 
               <button
@@ -107,13 +112,45 @@ export default {
         numeroFuncionario: '',
         data: '',
         materiais: [
-          { nome: '', quantidade: '' }
+          { nome: '', quantidade: '', quantidadeInvalida: false}
         ]
-      }
+      },
+      materiaisDisponiveis: []
     }
   },
+
+  mounted() {
+    this.carregarMateriais();
+  },
+
   methods: {
     handleSubmit() {
+      // Primeiro validamos todas as quantidades
+      let todasQuantidadesValidas = true;
+      
+      this.form.materiais.forEach(material => {
+        if (material.nome) { // Só validamos se houver material selecionado
+          const materialSelecionado = this.materiaisDisponiveis.find(
+            m => m.nome === material.nome
+          );
+          
+          if (!materialSelecionado || 
+              isNaN(material.quantidade) || 
+              material.quantidade < 0 || 
+              material.quantidade > materialSelecionado.quantidadeDisponivel) {
+            material.quantidadeInvalida = true;
+            todasQuantidadesValidas = false;
+          } else {
+            material.quantidadeInvalida = false;
+          }
+        }
+      });
+
+      // Se alguma quantidade for inválida, não prosseguimos
+      if (!todasQuantidadesValidas) {
+        return;
+      }
+      
       // Buscar ocorrências existentes no localStorage (ou criar lista vazia)
       const ocorrenciasExistentes = JSON.parse(localStorage.getItem('ocorrencias')) || [];
 
@@ -159,12 +196,45 @@ export default {
 
     removerMaterial(index) {
       this.form.materiais.splice(index, 1);
-    }
+    },
+
+    getMateriaisFromLocalStorage() {
+      const materiais = JSON.parse(localStorage.getItem('materiais')) || [];
+      return materiais.map(material => ({
+        id: material.id,
+        nome: material.nomeMaterial,
+        quantidadeDisponivel: material.quantRest
+      }));
+    },
+
+    carregarMateriais() {
+      this.materiaisDisponiveis = this.getMateriaisFromLocalStorage();
+    },
+
+    validarQuantidade(index) {
+      const material = this.form.materiais[index];
+      
+      if (material.quantidade === '' || material.quantidade === null) {
+        material.quantidadeInvalida = false;
+        return;
+      }
+      
+      if (!material.nome) return; // Não valida se não houver material selecionado
+
+      const materialSelecionado = this.materiaisDisponiveis.find(
+        m => m.nome === material.nome
+      );
+
+      if (materialSelecionado) {
+        material.quantidadeInvalida = isNaN(material.quantidade) || 
+        material.quantidade < 0 || 
+        material.quantidade > materialSelecionado.quantidadeDisponivel;
+      }
+    },
   }
 }
 </script>
 
-  
   <style lang="scss" scoped>
   .popup {
     position: fixed;
@@ -331,5 +401,15 @@ export default {
   color: #22374e;
 }
 
+.input-error {
+  border: 2px solid #ff0000 !important;
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
   
 </style>
