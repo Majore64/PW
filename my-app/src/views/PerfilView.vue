@@ -145,7 +145,7 @@ const pendingOccurrences = computed(() => {
   
   const occurrences = store.userOccurrences(store.currentUserId)
   return occurrences
-    .filter(o => o.status === 'pending') // Filtra apenas pendentes
+    .filter(o => !o.resolvido) // Mudança: !o.resolvido em vez de status === 'pending'
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Ordena por data (mais recente primeiro)
     .slice(0, 3) // Limita a 3 ocorrências
 })

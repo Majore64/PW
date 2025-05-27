@@ -61,6 +61,12 @@
             <div class="mt-2">
               <p class="m-0"><strong>Localização:</strong> {{ occurrence.location }}</p>
               <p class="m-0"><strong>Data:</strong> {{ formatDate(occurrence.createdAt) }}</p>
+              <p class="m-0"><strong>Alocado a:</strong> {{ occurrence.alocadoA }}</p>
+              <p class="m-0"><strong>Status: </strong> 
+                <span :class="occurrence.resolvido ? 'text-success' : 'text-warning'">
+                  {{ occurrence.resolvido ? 'Resolvido' : 'Pendente' }}
+                </span>
+              </p>
             </div>
           </div>
 
@@ -294,7 +300,7 @@ onMounted(async () => {
       return
     }
 
-    if (foundOccurrence.status === 'resolved') {
+    if (foundOccurrence.resolvido) { // Mudança: usar resolvido em vez de status
       console.warn('Ocorrência já finalizada.')
       notFound.value = true
       setTimeout(() => {

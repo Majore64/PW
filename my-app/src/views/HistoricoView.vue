@@ -43,11 +43,11 @@
       <div class="d-flex justify-content-center gap-4 mb-4">
         <span class="badge rounded-pill px-3 py-2" style="background-color: #FFF8E1; color: #FFA000;">
           <i class="bi bi-exclamation-circle me-1"></i>
-          Pendentes: {{ userOccurrences.filter(o => o.status === 'pending').length }}
+          Pendentes: {{ userOccurrences.filter(o => !o.resolvido).length }}
         </span>
         <span class="badge rounded-pill px-3 py-2" style="background-color: #E8F5E9; color: #2E7D32;">
           <i class="bi bi-check-circle me-1"></i>
-          Resolvidas: {{ userOccurrences.filter(o => o.status === 'resolved').length }}
+          Resolvidas: {{ userOccurrences.filter(o => o.resolvido).length }}
         </span>
       </div>
 
@@ -57,11 +57,11 @@
           v-for="occurrence in displayedOccurrences" 
           :key="occurrence.id"
           class="occurrence-wrapper"
-          :style="getCardStyle(occurrence.status)"
+          :style="getCardStyle(occurrence.resolvido)"
         >
           <OccurrenceCard :occurrence="occurrence" />
           <div class="status-badge">
-            <span v-if="occurrence.status === 'pending'" class="badge bg-warning text-dark">
+            <span v-if="!occurrence.resolvido" class="badge bg-warning text-dark">
               PENDENTE
             </span>
             <span v-else class="badge bg-success text-white">
@@ -97,17 +97,6 @@ const router = useRouter();
 const store = useOccurrencesStore();
 const isAuthenticated = ref(true);
 
-// Verificar autenticação
-onMounted(() => {
-  if (!store.currentUser) {
-    console.warn('Nenhum usuário logado. Redirecionando para login.');
-    isAuthenticated.value = false;
-    setTimeout(() => {
-      router.push('/');
-    }, 2000);
-  }
-});
-
 // Estado para controle da view
 const sortOrder = ref('recentes');
 const showAll = ref(false);
@@ -120,8 +109,8 @@ const userOccurrences = computed(() => {
   const occurrences = store.userOccurrences(store.currentUserId);
   
   // Separa pendentes e resolvidas
-  const pending = occurrences.filter(o => o.status === 'pending');
-  const resolved = occurrences.filter(o => o.status === 'resolved');
+  const pending = occurrences.filter(o => !o.resolvido); // Mudança: !o.resolvido
+  const resolved = occurrences.filter(o => o.resolvido); // Mudança: o.resolvido
   
   // Ordena cada grupo
   const sortFn = (a, b) => sortOrder.value === 'recentes' 
@@ -150,12 +139,22 @@ const toggleShowAll = () => {
 };
 
 // Estilo dinâmico para o card baseado no status
-const getCardStyle = (status) => {
-  return {
-    'pending': 'border-left: 4px solid #FFC107; background-color: #FFF8E1;',
-    'resolved': 'border-left: 4px solid #4CAF50; background-color: #E8F5E9;'
-  }[status];
+const getCardStyle = (resolvido) => {
+  return resolvido
+    ? 'border-left: 4px solid #4CAF50; background-color: #E8F5E9;'
+    : 'border-left: 4px solid #FFC107; background-color: #FFF8E1;';
 };
+
+// Verificar autenticação
+onMounted(() => {
+  isAuthenticated.value = !!store.currentUser;
+  if (!isAuthenticated.value) {
+    console.warn('Nenhum usuário logado. Redirecionando para login.');
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+  }
+});
 </script>
 
 <style scoped>

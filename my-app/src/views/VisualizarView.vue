@@ -46,7 +46,8 @@
           <div class="mb-4 px-3">
             <p class="mb-2"><strong>Alerta dado por:</strong> {{ occurrence.createdByName }}</p>
             <p class="mb-2"><strong>Data da ocorrência:</strong> {{ formattedDate }}</p>
-            <p class="mb-0"><strong>Localização:</strong> {{ occurrence.location }}</p>
+            <p class="mb-2"><strong>Localização:</strong> {{ occurrence.location }}</p>
+            <p class="mb-2"><strong>Alocado a:</strong> {{ occurrence.alocadoA }}</p> 
             
             <!-- Seção de Materiais Necessários -->
             <div v-if="occurrence.equipment?.length" class="mt-2">
@@ -60,17 +61,17 @@
             </div>
           </div>
 
-          <hr class="my-4">
+          <hr class="my-2">
 
           <!-- Descrição -->
           <div class="bg-secondary rounded-3 overflow-hidden">
             <div class="p-3">
               <h5 class="mb-3 text-white position-relative pb-2">
-                {{ occurrence.status === 'pending' ? 'Descrição' : 'Solução Aplicada' }}
+                {{ occurrence.resolvido ? 'Solução Aplicada' : 'Descrição' }}
                 <span class="position-absolute bottom-0 start-0 w-100 border-bottom border-dark"></span>
               </h5>
             </div>
-            <div class="p-3 pt-0 text-white" style="min-height: 100px; max-height: 300px; overflow-y: auto;">
+            <div class="p-3 pt-0 text-white" style="min-height: 100px; overflow-y: auto;">
               <p class="mb-0">{{ currentDescription }}</p>
             </div>
           </div>
@@ -86,15 +87,6 @@
             </button>
           </div>
 
-          <!-- Status -->
-          <div class="text-center mt-4">
-            <span 
-              class="badge rounded-pill fs-6 px-3 py-2"
-              :class="statusClass"
-            >
-              {{ formattedStatus }}
-            </span>
-          </div>
         </div>
       </div>
     </div>
@@ -133,29 +125,6 @@ const showMedia = ref(false);
 const notFound = ref(false);
 const isAuthenticated = ref(true);
 
-// Verificar autenticação e se a ocorrência existe e pertence ao usuário atual
-onMounted(() => {
-  if (!store.currentUser) {
-    console.warn('Nenhum usuário logado. Redirecionando para login.');
-    isAuthenticated.value = false;
-    setTimeout(() => {
-      router.push('/');
-    }, 2000);
-    return;
-  }
-
-  const id = Number(route.params.id);
-  const foundOccurrence = store.getOccurrenceById(id);
-  
-  if (!foundOccurrence) {
-    console.warn('Ocorrência não encontrada ou acesso não autorizado.');
-    notFound.value = true;
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 2000);
-  }
-});
-
 const occurrence = computed(() => store.getOccurrenceById(Number(route.params.id)));
 
 const formattedDate = computed(() => {
@@ -175,13 +144,13 @@ const formattedType = computed(() => {
 });
 
 const currentDescription = computed(() => {
-  return occurrence.value?.status === 'resolved' 
+  return occurrence.value?.resolvido 
     ? occurrence.value?.resolutionComment || 'Nenhuma descrição de solução fornecida'
     : occurrence.value?.description || 'Sem descrição';
 });
 
 const mediaData = computed(() => {
-  return occurrence.value?.status === 'resolved'
+  return occurrence.value?.resolvido
     ? occurrence.value?.resolutionProof
     : occurrence.value?.media;
 });
@@ -196,7 +165,7 @@ const mediaSrc = computed(() => {
 });
 
 const mediaButtonText = computed(() => {
-  return occurrence.value?.status === 'resolved' ? 'Ver Prova' : 'Ver Media';
+  return occurrence.value?.resolvido ? 'Ver Prova' : 'Ver Media';
 });
 
 const mediaIcon = computed(() => {
@@ -210,13 +179,36 @@ const isImage = computed(() => mediaData.value?.type?.includes('image'));
 const isVideo = computed(() => mediaData.value?.type?.includes('video'));
 
 const formattedStatus = computed(() => {
-  return occurrence.value?.status === 'pending' ? 'PENDENTE' : 'RESOLVIDO';
+  return occurrence.value?.resolvido ? 'RESOLVIDO' : 'PENDENTE';
 });
 
 const statusClass = computed(() => {
-  return occurrence.value?.status === 'pending' 
-    ? 'bg-warning text-dark'
-    : 'bg-success text-white';
+  return occurrence.value?.resolvido 
+    ? 'bg-success text-white'
+    : 'bg-warning text-dark';
+});
+
+// Verificar autenticação e se a ocorrência existe e pertence ao usuário atual
+onMounted(() => {
+  const id = Number(route.params.id);
+  const foundOccurrence = store.getOccurrenceById(id);
+  
+  if (!store.currentUser) {
+    console.warn('Nenhum usuário logado. Redirecionando para login.');
+    isAuthenticated.value = false;
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+    return;
+  }
+
+  if (!foundOccurrence) {
+    console.warn('Ocorrência não encontrada ou acesso não autorizado.');
+    notFound.value = true;
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 2000);
+  }
 });
 </script>
 

@@ -9,7 +9,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
     return {
       occurrences: JSON.parse(localStorage.getItem("occurrences")) || [],
       currentUser: currentUser,
-      currentUserId: userId, // Armazena o ID do usuário explicitamente
+      currentUserId: userId, 
       completedCount: JSON.parse(localStorage.getItem(`completedCount_${userId}`)) || 0,
       equipmentSuggestions: {
         local_sujo: ["Esfregona", "Vassoura", "Luvas", "Aspirador", "Desinfetante"],
@@ -31,7 +31,9 @@ export const useOccurrencesStore = defineStore("occurrences", {
       const newOccurrence = {
         ...occurrence,
         id: Date.now(),
-        status: "pending",
+        resolvido: false,
+        alocadoA: "-",
+        validado: false,
         createdAt: new Date().toISOString(),
         createdBy: this.currentUserId,
         createdByName: this.currentUser.name,
@@ -57,7 +59,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
         // Atualizar a ocorrência específica
         updatedOccurrences[index] = {
           ...updatedOccurrences[index],
-          status: "resolved",
+          resolvido: true,
           resolvedAt: new Date().toISOString(),
           resolutionComment: comment,
           resolvedBy: this.currentUserId,
@@ -101,13 +103,6 @@ export const useOccurrencesStore = defineStore("occurrences", {
       // Remover dados do localStorage relacionados ao usuário
       localStorage.removeItem("user")
 
-      // Opcional: manter as ocorrências para quando o usuário fizer login novamente
-      // Se quiser limpar tudo, descomente as linhas abaixo:
-      // localStorage.removeItem('occurrences');
-      // localStorage.removeItem(`completedCount_${this.currentUserId}`);
-      // this.occurrences = [];
-      // this.completedCount = 0;
-
       console.log("Usuário deslogado com sucesso")
     },
   },
@@ -132,7 +127,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
         console.warn("Tentativa de acessar ocorrências pendentes de outro usuário")
         return []
       }
-      return state.occurrences.filter((o) => o.status === "pending" && o.createdBy === userId)
+      return state.occurrences.filter((o) => !o.resolvido && o.createdBy === userId) // Mudança: !o.resolvido em vez de status === "pending"
     },
 
     oldestUserOccurrences:
@@ -144,7 +139,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
           return []
         }
         return state.occurrences
-          .filter((o) => o.createdBy === userId && o.status === "pending")
+          .filter((o) => o.createdBy === userId && !o.resolvido) // Mudança: !o.resolvido em vez de status === "pending"
           .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
           .slice(0, limit)
       },
