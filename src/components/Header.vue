@@ -2,7 +2,13 @@
   <header class="header">
     <!-- Esquerda: Logo + navegação -->
     <div class="left-group">
-      <img src="@/assets/Logo.png" alt="Logo" class="logo" />
+      <img
+        src="@/assets/Logo.png"
+        alt="Logo"
+        class="logo"
+        @click="goToHome"
+        style="cursor: pointer;"
+      />
       <div class="nav-buttons left">
         <a href="#quem-somos" class="nav-btn">Quem Somos</a>
         <a href="#contactos" class="nav-btn">Contacte-nos</a>
@@ -28,8 +34,11 @@ export default {
       this.$router.push('/login')
     },
     irParaChat() {
-    this.$router.push('/chatbot')
-  }
+      this.$router.push('/chatbot')
+    },
+    goToHome() {
+      this.$router.push('/')
+    }
   }
 }
 </script>

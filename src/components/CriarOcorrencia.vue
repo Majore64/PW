@@ -8,34 +8,35 @@
 
     <div class="content">
       <div class="form-left">
-        <label>Tipo de Ocorrência</label>
-        <select v-model="tipoSelecionado">
-          <option disabled value="">Selecione...</option>
-          <option>Local Sujo</option>
-          <option>Equipamento Danificado</option>
-          <option>Falta de Material Médico</option>
-          <option>Material Fora do Lugar</option>
-        </select>
+        <form @submit.prevent="criarOcorrencia">
+          <label>Tipo de Ocorrência</label>
+          <select v-model="tipoSelecionado">
+            <option disabled value="">Selecione...</option>
+            <option>Local Sujo</option>
+            <option>Equipamento Danificado</option>
+            <option>Falta de Material Médico</option>
+            <option>Material Fora do Lugar</option>
+          </select>
 
-        <label>Email</label>
-        <input
-          v-model="email"
-          type="email"
-          placeholder="exemplo@gmail.com"
-          disabled
-        />
+          <label>Email</label>
+          <input
+            v-model="email"
+            type="email"
+            placeholder="exemplo@gmail.com"
+            disabled
+          />
 
-        <div class="row">
-          <div class="col">
-            <label>Zonaa</label>
-            <input v-model="zona" type="text" placeholder="Insira zona" />
+          <div class="row">
+            <div class="col">
+              <label>Zonaa</label>
+              <input v-model="zona" type="text" placeholder="Insira zona" />
+            </div>
+            <div class="col">
+              <label>Andar</label>
+              <input v-model="andar" type="text" placeholder="Ex: 2º Andar" />
+            </div>
           </div>
-          <div class="col">
-            <label>Andar</label>
-            <input v-model="andar" type="text" placeholder="Ex: 2º Andar" />
-          </div>
-        </div>
-                <!-- AQUI ENTRE A ZONA/ANDAR E A DESCRIÇÃO -->
+          <!-- AQUI ENTRE A ZONA/ANDAR E A DESCRIÇÃO -->
           <label>Material</label>
           <div class="row">
             <select v-model="materialSelecionado">
@@ -61,35 +62,34 @@
               <button @click="removerMaterial(mat.nome)">❌</button>
             </span>
           </div>
-                <label>Descrição</label>
-        <textarea v-model="descricao" placeholder="Escreva algo..."></textarea>
 
+          <label>Descrição</label>
+          <textarea v-model="descricao" placeholder="Escreva algo..."></textarea>
 
-        <div class="form-group">
-          <label>Imagem da Ocorrência</label>
-          <input
-            type="file"
-            @change="handleImageUpload"
-            accept="image/*"
-            class="form-control"
-          />
-          <img
-            v-if="imagemPreview"
-            :src="imagemPreview"
-            class="preview-image"
-            alt="Preview"
-          />
-        </div>
+          <div class="form-group">
+            <label>Imagem da Ocorrência</label>
+            <input
+              type="file"
+              @change="handleImageUpload"
+              accept="image/*"
+              class="form-control"
+            />
+            <img
+              v-if="imagemPreview"
+              :src="imagemPreview"
+              class="preview-image"
+              alt="Preview"
+            />
+          </div>
+          <button type="submit">Criar Ocorrência</button>
+        </form>
+
       </div>
 
       <div class="map-right">
         <img src="@/assets/mapa.png" alt="Mapa" class="mapa" />
       </div>
     </div>
-
-    <button class="submit-btn" @click="criarOcorrencia">
-      Criar Ocorrência
-    </button>
   </div>
 </template>
 
@@ -143,84 +143,44 @@
       const imagemPreview = ref(null)
       const imagemBase64 = ref(null)
 
-    // FUNÇÃO PARA GUARDAR NA STORE
-      function criarOcorrencia() {
-        const novaOcorrencia = {
-            id: Date.now().toString(),
-            tipo: tipoSelecionado.value,
-            data: new Date().toLocaleString(),
-            zona: zona.value,
-            andar: andar.value,
-            email: email.value,
-            materiais: materiaisEscolhidos.value, // Agora é array de objetos {nome, quantidade}
-            descricao: descricao.value,
-            imagem: imagemBase64.value,
-            status: 'Em Análise'
-          }
-        // Save to store
-        store.adicionarOcorrencia(novaOcorrencia)
+    function criarOcorrencia() {
+      // Prevent multiple submissions
+      if (!tipoSelecionado.value || !zona.value || !andar.value) {
+        return
 
-        // Save to localStorage
-        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
-        ocorrencias.push(novaOcorrencia)
-        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias))
-
-        alert('Ocorrência criada com sucesso!')
-        router.push(`/detalhes/${novaOcorrencia.id}`)
-      }
-      const inputFile = ref(null)
-       function abrirUpload() {
-          inputFile.value.click()
-        }
-
-        function handleFile(event) {
-        const file = event.target.files[0]
-        if (file) {
-          const reader = new FileReader()
-          reader.onload = () => {
-            imagemSelecionada.value = reader.result // guarda imagem como base64
-          }
-          reader.readAsDataURL(file)
-        }
       }
 
-      const handleImageUpload = (event) => {
-        const file = event.target.files[0]
-        if (file) {
-          const reader = new FileReader()
-          reader.onload = (e) => {
-            imagemPreview.value = e.target.result
-            imagemBase64.value = e.target.result
-          }
-          reader.readAsDataURL(file)
-        }
+      const novaOcorrencia = {
+        id: Date.now().toString(),
+        tipo: tipoSelecionado.value,
+        data: new Date().toLocaleString(),
+        zona: zona.value,
+        andar: andar.value,
+        email: email.value,
+        materiais: materiaisEscolhidos.value,
+        descricao: descricao.value,
+        imagem: imagemBase64.value,
+        estado: 'Em Análise'
       }
 
-      const salvarOcorrencia = () => {
-        // Create new occurrence object
-        const novaOcorrencia = {
-          id: Date.now().toString(), // Generate unique ID
-          tipo: tipoSelecionado.value,
-          data: new Date().toLocaleDateString(),
-          zona: zona.value,
-          andar: andar.value,
-          email: email.value,
-          descricao: descricao.value,
-          imagem: imagemSelecionada.value
-        };
+      // Only save to store - remove direct localStorage manipulation
+      store.adicionarOcorrencia(novaOcorrencia)
 
-        // Get existing occurrences
-        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+      // Navigate to details page
+      router.push(`/detalhes/${novaOcorrencia.id}`)
+    }
 
-        // Add new occurrence
-        ocorrencias.push(novaOcorrencia);
-
-        // Save back to localStorage
-        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
-
-        // Navigate to details page
-        router.push(`/detalhes/${novaOcorrencia.id}`);
-      };
+    const handleImageUpload = (event) => {
+      const file = event.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          imagemPreview.value = e.target.result
+          imagemBase64.value = e.target.result
+        }
+        reader.readAsDataURL(file)
+      }
+    }
 </script>
 
 
@@ -313,15 +273,6 @@
   textarea {
     height: 120px;
     resize: none;
-  }
-
-  .upload-btn {
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    align-self: start;
   }
 
   .map-right {
