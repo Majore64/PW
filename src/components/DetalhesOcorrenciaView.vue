@@ -48,6 +48,20 @@
           </div>
         </div>
 
+        <!-- Materials Section -->
+        <div class="info-section">
+          <h2 class="section-title">Materiais</h2>
+          <div class="materials-list">
+            <div v-if="ocorrencia?.materiais && ocorrencia.materiais.length > 0">
+              <div v-for="material in ocorrencia.materiais" :key="material.nome" class="material-item">
+                <span class="material-name">{{ material.nome }}</span>
+                <span class="material-quantity">({{ material.quantidade }})</span>
+              </div>
+            </div>
+            <p v-else class="no-materials">Nenhum material registrado</p>
+          </div>
+        </div>
+
         <!-- Description -->
         <div class="info-section">
           <h2 class="section-title">Descrição</h2>
@@ -76,20 +90,13 @@
         </div>
 
         <!-- Images -->
-        <div class="images-section">
+        <div class="images-section" v-if="ocorrencia?.imagem">
           <h2 class="section-title">Imagens</h2>
           <div class="images-grid">
-            <div class="image-container" v-if="ocorrencia?.imagem">
+            <div class="image-container">
               <img
                 :src="ocorrencia.imagem"
                 alt="Imagem da ocorrência"
-                class="evidence-image"
-              />
-            </div>
-            <div class="image-container" v-else>
-              <img
-                :src="imagemExemplo"
-                alt="Imagem padrão"
                 class="evidence-image"
               />
             </div>
@@ -102,29 +109,33 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router'; // Add useRouter
+import { useRoute, useRouter } from 'vue-router';
 import { X, MapPin, Mail, FileText } from 'lucide-vue-next';
 import mapaExemplo from '@/assets/mapa.png';
 import imagemExemplo from '@/assets/exemplo.png';
 
 const route = useRoute();
-const router = useRouter(); // Initialize router
+const router = useRouter();
 const ocorrencia = ref(null);
 
 onMounted(() => {
   try {
-    // Get ID from route params
     const id = route.params.id;
-
-    // Get occurrences from localStorage
     const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-    console.log('Ocorrências encontradas:', ocorrencias); // Debug log
 
-    // Find the specific occurrence
+    // Add debug logging
+    console.log('ID procurado:', id);
+    console.log('Todas ocorrências:', ocorrencias);
+
     const found = ocorrencias.find(o => o.id === id);
-    console.log('Ocorrência encontrada:', found); // Debug log
+
+    // Debug the found occurrence
+    console.log('Ocorrência encontrada:', found);
+    console.log('Materiais:', found?.materiais);
 
     if (found) {
+      // Ensure materials array exists
+      found.materiais = found.materiais || [];
       ocorrencia.value = found;
     } else {
       console.error('Ocorrência não encontrada:', id);
@@ -316,5 +327,34 @@ onMounted(() => {
 
 .map-marker {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* New styles for materials section */
+.materials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.material-item {
+  display: flex;
+  justify-content: space-between;
+
+}
+
+.material-name {
+  color: #111b29;
+  font-weight: 0.875rem;
+}
+
+.material-quantity {
+  color: #111b29;
+  font-size: 0.875rem;
+}
+
+.no-materials {
+  color: #111b29;
+  font-size: 0.875rem;
+  background-color: #f9f9fb;
 }
 </style>
