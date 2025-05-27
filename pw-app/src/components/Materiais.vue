@@ -66,9 +66,7 @@
 
     <!-- Paginação -->
     <div class="pagination">
-      <button @click="paginaAnterior" :disabled="paginaAtual === 1"> 
-        <span class="material-icons">chevron_left</span>
-      </button>
+      <button @click="paginaAnterior" :disabled="paginaAtual === 1">Anterior</button>
       <span v-for="n in totalPaginas" :key="n">
         <button 
           @click="irParaPagina(n)" 
@@ -77,9 +75,7 @@
           {{ n }}
         </button>
       </span>
-      <button @click="proximaPagina" :disabled="paginaAtual === totalPaginas">
-        <span class="material-icons">chevron_right</span>
-      </button>
+      <button @click="proximaPagina" :disabled="paginaAtual === totalPaginas">Próxima</button>
     </div>
 
     <PopupAdicionarMaterial
@@ -141,18 +137,20 @@ export default {
       // 2. Inicializar um mapa para contar os materiais usados
       const contagemMateriais = {};
 
-      // 3. Contar os materiais usados em todas as ocorrências
-      ocorrencias.forEach(ocorrencia => {
-        if (Array.isArray(ocorrencia.materiais)) {
-          ocorrencia.materiais.forEach(material => {
-            const nome = material.nome;
-            if (!contagemMateriais[nome]) {
-              contagemMateriais[nome] = 0;
-            }
-            contagemMateriais[nome] += Number(material.quantidade) || 0;
-          });
-        }
-      });
+      // 3. Contar os materiais usados nas ocorrências validadas
+      ocorrencias
+        .filter(ocorrencia => ocorrencia.validado === true)
+        .forEach(ocorrencia => {
+          if (Array.isArray(ocorrencia.materiais)) {
+            ocorrencia.materiais.forEach(material => {
+              const nome = material.nome;
+              if (!contagemMateriais[nome]) {
+                contagemMateriais[nome] = 0;
+              }
+              contagemMateriais[nome] += Number(material.quantidade) || 0;
+            });
+          }
+        });
 
         // 4. Atualizar o array local `materiais`
         filtrados =  filtrados.map(material => {
@@ -497,26 +495,23 @@ export default {
 }
 
 .pagination {
+  position: fixed;
+  bottom: 20px; 
+  left: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 5px;
-  margin-top: 20px;
+  padding: 10px;
 }
 
 .pagination button {
-  height: 36px;
-  min-width: 36px;
   padding: 8px 12px;
   border: 1px solid #03B5AA;
   background-color: white;
   cursor: pointer;
   border-radius: 4px;
   color: #03B5AA;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
 }
 
 .pagination button:hover:not(:disabled) {
