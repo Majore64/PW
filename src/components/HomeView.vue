@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Header -->
-   
+
 
     <!-- Hero image com texto -->
     <section class="hero-section">
@@ -66,10 +66,10 @@
 
           <!-- Histórico de Ocorrências -->
           <router-link to="/historico" class="card-link">
-            <div class="card">
-              <img src="@/assets/Historico_ocorrencias.png" alt="Histórico de Ocorrências" class="card-img" />
+            <div class="ocorrencia-card">
+              <img src="@/assets/Historico_ocorrencias.png" alt="Histórico de Ocorrências" class="card-image" />
               <h3 class="card-title">Histórico de Ocorrências</h3>
-              <p class="card-text">
+              <p class="card-description">
                 Consulta todas as ocorrências já registadas, com detalhes sobre o estado, tipo de problema e local, facilitando o acompanhamento e gestão.
               </p>
             </div>
@@ -103,10 +103,10 @@
           <hr class="linha-clientes" />
           <h3 class="subtitulo-clientes">Desde</h3>
           <p class="descricao-clientes">Clínicas, hospitais e<br>profissionais de saúde</p>
-          <h1 class="apoio-clientes">apoiamos <span>quem cuida</span></h1>
+          <h1 class="apoio-clientes">apoiamos quem cuida</h1>
         </div>
 
-       
+
       </section>
 
   </div>
@@ -129,13 +129,13 @@ footer {
   margin-top: 0;
 }
 .clientes-section {
-  background-image: url('@/assets/Background.png'); /* Caminho correto */
+  background-image: url('@/assets/Background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   padding: 100px 0;
   color: white;
-  text-align: center; /* centraliza texto */
+  text-align: center;
   margin-bottom: 0;
   padding-bottom: 0;
 }
@@ -148,37 +148,39 @@ footer {
 .titulo-clientes {
   font-size: 2.8rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
   text-shadow: 1px 1px 2px #00000070;
 }
 
 .linha-clientes {
-  width: 50%;
+  width: 40%;
   height: 5px;
-  background-color: #45717c;
-  margin: 0 auto 2rem auto;
+  background-color: #34506d;
+  margin: 0 auto 1rem auto;
   border: none;
+  margin-bottom: 0.5rem;
 }
 
 .subtitulo-clientes {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: bold;
   color: #89def2;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   text-shadow: 1px 1px 1px #00000070;
 }
 
 .descricao-clientes {
-  font-size: 1.3rem;
+  font-size: 1.9rem;
   line-height: 1.6;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   text-shadow: 1px 1px 1px #00000070;
 }
 
 .apoio-clientes {
-  font-size: 2.8rem;
+  font-size: 2.5rem;
   color: #89def2;
   text-shadow: 2px 2px 3px #00000070;
-  font-weight: 800;
+  font-weight: bold;
 }
 
 .apoio-clientes span {
@@ -372,7 +374,9 @@ footer {
 }
 
 .ocorrencias-title {
-  font-size: 24px;
+  font-size: 45px;
+  font-weight: bold;
+  color: #34506d;
   margin-bottom: 24px;
   text-align: center;
 }
@@ -428,16 +432,16 @@ footer {
 
 .card {
   background-color: #fbf9f6;
-  border-radius: 12px; /* menos arredondado que antes */
-  padding: 24px;       /* mais espaço dentro */
-  border: 1px solid #000; /* mantém a borda preta */
-  width: 300px;        /* ajusta o tamanho para ser mais largo */
-  height: auto;        /* altura automática com base no conteúdo */
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #000;
+  width: 300px;
+  height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* opcional, para suavizar */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .card img {
