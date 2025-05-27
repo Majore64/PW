@@ -176,11 +176,7 @@ export default {
           return {
             ...material,
             quantRest: restante,
-            estado: restante === 0
-              ? 'Indisponivel'
-              : restante === material.quantidade
-                ? 'Disponivel'
-                : 'Alocado'
+            estado: restante === 0 ? 'Indisponivel' : 'Disponivel'
           };
         });
       }
@@ -196,14 +192,7 @@ export default {
         })
         filtrados = arr;
       } else if (this.filtroAtivo === 'alocados') {
-        let arr = [];
-        filtrados = filtrados.filter(m => { 
-          if (m.quantidade > m.quantRest) { 
-            m.estado = "Alocado";
-            arr.push(m) 
-          }
-        })
-        filtrados = arr;
+        filtrados = filtrados.filter(m => m.quantRest > 0 && m.quantidade > m.quantRest);
       }else if (this.filtroAtivo === 'indisponiveis') {
         let arr = [];
         filtrados = filtrados.filter(m => { 
