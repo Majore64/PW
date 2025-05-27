@@ -26,6 +26,7 @@ const routes = [
   {
     path: '/',
     component: DefaultLayout,
+    redirect: '/ocorrencias', 
     children: [
       { 
         path: 'funcionarios', 
@@ -72,10 +73,6 @@ const routes = [
       },
     ],
     meta: { requiresAuth: true },
-  },
-  {
-    path: '/',
-    redirect: '/ocorrencias' 
   }
 ];
 
