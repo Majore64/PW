@@ -130,6 +130,21 @@ export default {
     materiaisFiltrados() {
       let filtrados = [...this.materiais];
     
+      // COLOCAR DO LADO DAS OCORRENCIAS E APAGAR AQUI
+    const ocorrencias = [
+      {
+        id: 1,
+        descricao: "Queda em escadas",
+        data: "2025-05-05",
+        materiais: [
+          { nome: "Esfregona", quantidade: 2, quantidadeInvalida: false},
+
+        ]
+      }
+    ];
+    localStorage.setItem("ocorrencias", JSON.stringify(ocorrencias));
+
+
       // 1. Obter as ocorrências da localStorage
       let ocorrenciasJSON = localStorage.getItem('ocorrencias');
       if (!ocorrenciasJSON) ocorrenciasJSON = null;
@@ -145,7 +160,7 @@ export default {
       ocorrencias.forEach(ocorrencia => {
         if (Array.isArray(ocorrencia.materiais)) {
           ocorrencia.materiais.forEach(material => {
-            const nome = material.nomeMaterial;
+            const nome = material.nome;
             if (!contagemMateriais[nome]) {
               contagemMateriais[nome] = 0;
             }
