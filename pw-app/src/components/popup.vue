@@ -9,26 +9,37 @@
               <h3>Nome funcionário</h3>
               <select v-model="form.nomeFuncionario" class="form-select">
                 <option disabled value="">Selecione um nome</option>
-                <option>Charlene Reed</option>
-                <option>Diogo Alves</option>
-                <option>Mariana Lopes</option>
-                <option>João Ferreira</option>
+                <option 
+                  v-for="funcionario in funcionarios" 
+                  :key="funcionario.id"
+                  :value="funcionario.nome"
+                >
+                  {{ funcionario.nome }}
+                </option>
               </select>
   
               <h3>Tipo de ocorrência</h3>
               <select v-model="form.tipoOcorrencia" class="form-select">
                 <option disabled value="">Selecione o tipo</option>
-                <option>Material em falta</option>
-                <option>Material mal alocado</option>
-                <option>Necessário limpeza</option>
+                <option 
+                  v-for="tipo in ocorrenciasTipos" 
+                  :key="tipo.id"
+                  :value="tipo.descricao"
+                >
+                  {{ tipo.descricao }}
+                </option>
               </select>
   
               <h3>Localização Alocada</h3>
               <select v-model="form.localizacao" class="form-select">
                 <option disabled value="">Selecione o local</option>
-                <option>Piso 1 - Sala 101</option>
-                <option>Piso 2 - Sala 205</option>
-                <option>Piso 3 - Sala 309</option>
+                <option 
+                  v-for="localizacao in localizacoes" 
+                  :key="localizacao.id"
+                  :value="localizacao.descricao"
+                >
+                  {{ localizacao.descricao }}
+                </option>
               </select>
             </div>
   
@@ -115,12 +126,15 @@ export default {
           { nome: '', quantidade: '', quantidadeInvalida: false}
         ]
       },
-      materiaisDisponiveis: []
+      materiaisDisponiveis: [],
+      funcionarios: [],
+      ocorrenciasTipos: [],
+      localizacoes: []
     }
   },
 
   mounted() {
-    this.carregarMateriais();
+    this.carregarDados();
   },
 
   methods: {
@@ -207,8 +221,40 @@ export default {
       }));
     },
 
-    carregarMateriais() {
+    getFuncionariosFromLocalStorage() {
+      const funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
+      return funcionarios.map(funcionario => ({
+        id: funcionario.id,
+        nome: funcionario.nome,
+        numero: funcionario.numero,
+        area: funcionario.area,
+        contacto: funcionario.contacto,
+        email: funcionario.email,
+        funcao: funcionario.funcao
+      }));
+    },
+
+    getTiposOcorrenciaFromLocalStorage() {
+      const tiposOcorrencia = JSON.parse(localStorage.getItem('tipoOcorrencias')) || [];
+      return tiposOcorrencia.map((tipo, index) => ({
+        id: index + 1, // Criando um ID sequencial caso não exista
+        descricao: tipo
+      }));
+    },
+
+    getLocalizacoesFromLocalStorage() {
+      const localizacoes = JSON.parse(localStorage.getItem('tipoLocalizacoes')) || [];
+      return localizacoes.map((localizacao, index) => ({
+        id: index + 1, // Criando um ID sequencial caso não exista
+        descricao: localizacao
+      }));
+    },
+
+    carregarDados() {
       this.materiaisDisponiveis = this.getMateriaisFromLocalStorage();
+      this.funcionarios = this.getFuncionariosFromLocalStorage();
+      this.ocorrenciasTipos = this.getTiposOcorrenciaFromLocalStorage();
+      this.localizacoes = this.getLocalizacoesFromLocalStorage();
     },
 
     validarQuantidade(index) {
@@ -231,6 +277,12 @@ export default {
         material.quantidade > materialSelecionado.quantidadeDisponivel;
       }
     },
+  },
+  watch: {
+    'form.nomeFuncionario'(novoNome) {
+      const funcionario = this.funcionarios.find(f => f.nome === novoNome);
+      this.form.numeroFuncionario = funcionario ? funcionario.id : '';
+    }
   }
 }
 </script>
