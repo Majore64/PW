@@ -143,20 +143,20 @@ export default {
 
       // 3. Contar os materiais usados em todas as ocorrências
       ocorrencias.forEach(ocorrencia => {
-        if (Array.isArray(ocorrencia.materiaisUsados)) {
-          ocorrencia.materiaisUsados.forEach(materialUsado => {
-            const id = materialUsado.id;
-            if (!contagemMateriais[id]) {
-              contagemMateriais[id] = 0;
+        if (Array.isArray(ocorrencia.materiais)) {
+          ocorrencia.materiais.forEach(material => {
+            const nome = material.nomeMaterial;
+            if (!contagemMateriais[nome]) {
+              contagemMateriais[nome] = 0;
             }
-            contagemMateriais[id] += 1;
+            contagemMateriais[nome] += Number(material.quantidade) || 0;
           });
         }
       });
 
         // 4. Atualizar o array local `materiais`
         filtrados =  filtrados.map(material => {
-          const usado = contagemMateriais[material.id] || 0;
+          const usado = contagemMateriais[material.nomeMaterial] || 0;
           const restante = Math.max(material.quantidade - usado, 0);
           return {
             ...material,
@@ -169,9 +169,6 @@ export default {
           };
         });
       }
-
-      // ler da localstorage a quantidade alocada de materias e atualizar no "filtrados" no campo quantRest
-      // comparaçao entre o array materiais inicial com o array da localstorage para encontrar o mesmo material
 
       // Aplicar filtro por estado
       if (this.filtroAtivo === 'disponiveis') {
