@@ -115,6 +115,14 @@
       <div class="perfil-footer" v-if="abaAtiva === 'ocorrencias'">
         <button class="desassociar-btn">Desassociar</button>
       </div>
+
+      <PerfilPopup 
+        v-if="mostrarPopupEdicao"
+        :funcionario="funcionario"
+        @fechar="mostrarPopupEdicao = false"
+        @atualizado="atualizarFuncionario"
+      />
+
     </div>
   </template>
   
@@ -122,10 +130,14 @@
   import PerfilPopup from './PerfilPopup.vue';
   export default {
     name: 'FuncionarioPerfil',
+    components: {
+      PerfilPopup
+    },
     data() {
       return {
         abaAtiva: 'perfil',
-        funcionario: null, // Será carregado do localStorage
+        funcionario: null, 
+        mostrarPopupEdicao: false,
         ocorrencias: [
           {
             numero: '01',
@@ -206,8 +218,12 @@
           this.$router.push({ name: 'Funcionarios' });
         }
       },
+      atualizarFuncionario(funcionarioAtualizado) {
+        this.funcionario = {...funcionarioAtualizado};
+        this.mostrarPopupEdicao = false;
+      },
       editarPerfil() {
-        this.$router.push({ name: 'EditarFuncionario', params: { id: this.funcionario.id } });
+        this.mostrarPopupEdicao = true;
       },
       eliminarPerfil() {
         if (confirm(`Tem certeza que deseja eliminar ${this.funcionario.nome}?`)) {
@@ -226,7 +242,7 @@
       }
     }
   };
-  </script>
+</script>
   
 <style scoped>
   @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
