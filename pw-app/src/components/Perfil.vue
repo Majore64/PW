@@ -24,7 +24,7 @@
       </div>
   
       <!-- Conteúdo do Perfil -->
-      <div class="perfil-content" v-if="abaAtiva === 'perfil'">
+      <div class="perfil-content" v-if="abaAtiva === 'perfil' && funcionario">
         <div class="info-section">
           <div class="info-grid">
             <div class="info-item">
@@ -101,7 +101,7 @@
       </div>
   
       <!-- Rodapé condicional -->
-      <div class="perfil-footer" v-if="abaAtiva === 'perfil'">
+      <div class="perfil-footer" v-if="abaAtiva === 'perfil' && funcionario">
         <button class="edit-btn" @click="editarPerfil">
           <span class="material-icons">edit</span>
           Editar
@@ -118,21 +118,14 @@
     </div>
   </template>
   
-  <script>
+<script>
+  import PerfilPopup from './PerfilPopup.vue';
   export default {
     name: 'FuncionarioPerfil',
     data() {
       return {
-        abaAtiva: 'perfil', // 'perfil' ou 'ocorrencias'
-        funcionario: {
-          id: 4,
-          numero: '139284321',
-          nome: 'Charlene Reed',
-          funcao: 'Enfermeira',
-          area: 'Piso 1, sala 3',
-          email: 'charlenereed@gmail.com',
-          contacto: '923547825'
-        },
+        abaAtiva: 'perfil',
+        funcionario: null, // Será carregado do localStorage
         ocorrencias: [
           {
             numero: '01',
@@ -193,13 +186,41 @@
         };
       }
     },
+    created() {
+      this.carregarFuncionario();
+    },
     methods: {
+      carregarFuncionario() {
+        // Obter o ID do parâmetro da rota
+        const funcionarioId = parseInt(this.$route.params.id);
+        
+        // Obter a lista de funcionários do localStorage
+        const funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
+        
+        // Encontrar o funcionário com o ID correspondente
+        this.funcionario = funcionarios.find(f => f.id === funcionarioId);
+        
+        if (!this.funcionario) {
+          console.error('Funcionário não encontrado');
+          // Redirecionar para a lista de funcionários
+          this.$router.push({ name: 'Funcionarios' });
+        }
+      },
       editarPerfil() {
         this.$router.push({ name: 'EditarFuncionario', params: { id: this.funcionario.id } });
       },
       eliminarPerfil() {
         if (confirm(`Tem certeza que deseja eliminar ${this.funcionario.nome}?`)) {
-          console.log('Eliminando funcionário', this.funcionario.id);
+          // Obter a lista atual de funcionários
+          const funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
+          
+          // Filtrar para remover o funcionário atual
+          const novaLista = funcionarios.filter(f => f.id !== this.funcionario.id);
+          
+          // Atualizar o localStorage
+          localStorage.setItem('funcionarios', JSON.stringify(novaLista));
+          
+          // Redirecionar para a lista de funcionários
           this.$router.push({ name: 'Funcionarios' });
         }
       }
@@ -207,7 +228,7 @@
   };
   </script>
   
-  <style scoped>
+<style scoped>
   @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
   
   .perfil-container {

@@ -58,15 +58,9 @@ export default {
   name: 'DefinicoesPage',
   data() {
     return {
-      funcoes: ['Médico', 'Enfermeiro', 'Enfermeiro'],
-      ocorrencias: ['Material em falta', 'Material mal alocado', 'Necessário Limpeza'],
-      localizacoes: [
-        'Piso 1, sala 1',
-        'Piso 1, sala 2',
-        'Piso 1, sala 3',
-        'Piso 2, sala 1',
-        'Piso 2, sala 2'
-      ],
+      funcoes: [],
+      ocorrencias: [],
+      localizacoes: [],
       novaFuncao: '',
       novaOcorrencia: '',
       novaLocalizacao: ''
@@ -83,20 +77,29 @@ export default {
       }
     },
     salvarAlteracoes() {
-      // Aqui você pode implementar a lógica para salvar no backend
-      console.log('Dados salvos:', {
-        funcoes: this.funcoes,
-        ocorrencias: this.ocorrencias,
-        localizacoes: this.localizacoes
-      });
+      localStorage.setItem('tipoFuncoes', JSON.stringify(this.funcoes));
+      localStorage.setItem('tipoOcorrencias', JSON.stringify(this.ocorrencias));
+      localStorage.setItem('tipoLocalizacoes', JSON.stringify(this.localizacoes));
+
       alert('Alterações salvas com sucesso!');
+    },
+    carregarDados() {
+      const funcoesArmazenadas = localStorage.getItem('tipoFuncoes');
+      const ocorrenciasArmazenadas = localStorage.getItem('tipoOcorrencias');
+      const localizacoesArmazenadas = localStorage.getItem('tipoLocalizacoes');
+
+      this.funcoes = funcoesArmazenadas ? JSON.parse(funcoesArmazenadas) : [];
+      this.ocorrencias = ocorrenciasArmazenadas ? JSON.parse(ocorrenciasArmazenadas) : [];
+      this.localizacoes = localizacoesArmazenadas ? JSON.parse(localizacoesArmazenadas) : [];
     }
   },
   mounted() {
     this.$emit('update-title', 'Definições');
+    this.carregarDados();
   }
 }
 </script>
+
 
 <style scoped>
 .page-content {
