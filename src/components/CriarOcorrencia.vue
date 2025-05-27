@@ -64,8 +64,6 @@
                 <label>Descrição</label>
         <textarea v-model="descricao" placeholder="Escreva algo..."></textarea>
 
-        <button class="upload-btn" @click="abrirUpload">📤 Inserir Imagem</button>
-          <input type="file" ref="inputFile" style="display: none" @change="handleFile" accept="image/*" />
 
         <div class="form-group">
           <label>Imagem da Ocorrência</label>
