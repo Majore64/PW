@@ -130,21 +130,6 @@ export default {
     materiaisFiltrados() {
       let filtrados = [...this.materiais];
     
-      // COLOCAR DO LADO DAS OCORRENCIAS E APAGAR AQUI
-    const ocorrencias = [
-      {
-        id: 1,
-        descricao: "Queda em escadas",
-        data: "2025-05-05",
-        materiais: [
-          { nome: "Esfregona", quantidade: 2, quantidadeInvalida: false},
-
-        ]
-      }
-    ];
-    localStorage.setItem("ocorrencias", JSON.stringify(ocorrencias));
-
-
       // 1. Obter as ocorrências da localStorage
       let ocorrenciasJSON = localStorage.getItem('ocorrencias');
       if (!ocorrenciasJSON) ocorrenciasJSON = null;
@@ -183,14 +168,7 @@ export default {
 
       // Aplicar filtro por estado
       if (this.filtroAtivo === 'disponiveis') {
-        let arr = [];
-        filtrados = filtrados.filter(m => { 
-          if (m.quantidade == m.quantRest) { 
-            m.estado = "Disponivel";
-            arr.push(m) 
-          }
-        })
-        filtrados = arr;
+        filtrados = filtrados.filter(m => m.quantidade === m.quantRest && m.quantRest > 0); 
       } else if (this.filtroAtivo === 'alocados') {
         filtrados = filtrados.filter(m => m.quantRest > 0 && m.quantidade > m.quantRest);
       }else if (this.filtroAtivo === 'indisponiveis') {
