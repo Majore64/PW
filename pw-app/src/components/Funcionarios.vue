@@ -98,40 +98,24 @@ export default {
       filtroAtivo: 'todos',
       paginaAtual: 1,
       itensPorPagina: 10,
-      funcionarios: [
-        { id: 1, numero: 'f1234', nome: 'João Ribeiro', funcao: 'Auxiliar de Enfermagem', area: 'Piso 1, sala 1' },
-        { id: 2, numero: 'f1235', nome: 'Maria Santos', funcao: 'Médico', area: 'Piso 2, sala 1' },
-        { id: 3, numero: 'f1236', nome: 'Ana Lima', funcao: 'Funcionário de Limpeza', area: 'Piso 1, sala 2' },
-        { id: 4, numero: 'f1237', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 5, numero: 'f1238', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 6, numero: 'f1239', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 7, numero: 'f1240', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 8, numero: 'f1241', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 9, numero: 'f1242', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 10, numero: 'f1243', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 11, numero: 'f1244', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 12, numero: 'f1245', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 13, numero: 'f1246', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-        { id: 14, numero: 'f1247', nome: 'Carlos Nogueira', funcao: 'Enfermeiro', area: 'Piso 1, sala 3' },
-      ],
+      funcionarios: [],
       tabs: [
-        { id: 'todos', label: 'Todos Funcionários' },
-        { id: 'enfermeiros', label: 'Enfermeiros' },
-        { id: 'medicos', label: 'Médicos' },
-        { id: 'limpeza', label: 'Funcionários de Limpeza' }
-      ]
+        { id: 'todos', label: 'Todos Funcionários' }
+      ] 
     };
   },
   computed: {
     funcionariosFiltrados() {
       let filtrados = [...this.funcionarios];
 
-      if (this.filtroAtivo === 'enfermeiros') {
-        filtrados = filtrados.filter(f => f.funcao.toLowerCase().includes('enfermeiro'));
-      } else if (this.filtroAtivo === 'medicos') {
-        filtrados = filtrados.filter(f => f.funcao.toLowerCase().includes('médico'));
-      } else if (this.filtroAtivo === 'limpeza') {
-        filtrados = filtrados.filter(f => f.funcao.toLowerCase().includes('limpeza'));
+      // Se não for "todos", filtra pela função correspondente
+      if (this.filtroAtivo !== 'todos') {
+        const filtroSelecionado = this.tabs.find(tab => tab.id === this.filtroAtivo);
+        if (filtroSelecionado) {
+          filtrados = filtrados.filter(f => 
+            f.funcao === filtroSelecionado.label
+          );
+        }
       }
 
       if (this.termoPesquisa) {
@@ -181,11 +165,15 @@ export default {
       this.mostrarPopup = false; 
     },
     guardarFuncionario(novoFuncionario) {
-      this.funcionarios.push({
-        id: this.funcionarios.length + 1,
+      const novo = {
+        id: Date.now(),  // Usa timestamp para gerar um id único
         ...novoFuncionario
-      });
+      };
+      this.funcionarios.push(novo);
+      localStorage.setItem('funcionarios', JSON.stringify(this.funcionarios));
+      this.fecharPopup();
     },
+    // Funções de paginação 
     proximaPagina() {
       if (this.paginaAtual < this.totalPaginas) {
         this.paginaAtual++;
@@ -198,10 +186,54 @@ export default {
     },
     irParaPagina(n) {
       this.paginaAtual = n;
+    },
+    carregarFiltros() {
+      // Busca as funções do localStorage (array de strings)
+      const funcoes = JSON.parse(localStorage.getItem('tipoFuncoes')) || [];
+      
+      // Transforma as strings em objetos de filtro
+      const tabsFuncoes = funcoes.map(funcao => ({
+        id: this.criarIdDaFuncao(funcao), // Cria um ID baseado no nome
+        label: funcao
+      }));
+      
+      // Atualiza os tabs, mantendo o "todos" como primeiro
+      this.tabs = [
+        { id: 'todos', label: 'Todos Funcionários' },
+        ...tabsFuncoes
+      ];
+    },
+    criarIdDaFuncao(nomeFuncao) {
+      // Converte para minúsculas e substitui espaços por underscores
+      return nomeFuncao.toLowerCase()
+        .replace(/\s+/g, '_')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+    },
+    contarFuncionariosPorFuncao(funcao) {
+      return this.funcionarios.filter(f => f.funcao === funcao).length;
     }
   },
   mounted() {
     this.$emit('update-title', 'Funcionários');
+
+    // Carrega os filtros
+    this.carregarFiltros();
+
+    const dadosGuardados = localStorage.getItem('funcionarios');
+    if (dadosGuardados) {
+      this.funcionarios = JSON.parse(dadosGuardados);
+
+      // Se não existir id, cria um
+      this.funcionarios = this.funcionarios.map((f, index) => {
+        if (!f.id) {
+          return { ...f, id: index + 1 };  // usa índice + 1 como id
+        }
+        return f;
+      });
+
+      // Atualiza o localStorage com os ids adicionados
+      localStorage.setItem('funcionarios', JSON.stringify(this.funcionarios));
+    }
   }
 };
 </script>

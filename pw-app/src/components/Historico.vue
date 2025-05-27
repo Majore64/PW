@@ -54,10 +54,10 @@
                 <button 
                   @click="verPerfil(ocorrencia)" 
                   class="action-btn" 
-                  :class="{ 'validado': ocorrencia.validado }"
-                  :disabled="ocorrencia.validado"
+                  :class="{ 'resolvido': ocorrencia.resolvido }"
+                  :disabled="ocorrencia.resolvido"
                   >
-                  <span class="validate-button">{{ ocorrencia.validado ? 'resolvido' : 'por resolver' }}</span>
+                  <span class="validate-button">{{ ocorrencia.resolvido ? 'resolvido' : 'por resolver' }}</span>
                 </button>
               </td>
             </tr>
@@ -182,20 +182,23 @@ export default {
   carregarOcorrencias() {
     const ocorrenciasRaw = JSON.parse(localStorage.getItem('ocorrencias')) || [];
 
-    this.ocorrencias = ocorrenciasRaw.map((oc, index) => ({
-      id: index + 1,
-      alertaPor: oc.nomeFuncionario,
-      tipo: oc.tipoOcorrencia,
-      area: oc.localizacao,
-      data: oc.data,
-      alocadoA: oc.alocadoA,
-      validado: oc.validado 
-    }));
+    this.ocorrencias = ocorrenciasRaw
+      .filter(oc=> oc.validado === true)
+      .map((oc) => ({
+        id: oc.id,
+        alertaPor: oc.nomeFuncionario,
+        tipo: oc.tipoOcorrencia,
+        area: oc.localizacao,
+        data: oc.data,
+        alocadoA: oc.alocadoA,
+        validado: oc.validado,
+        resolvido: oc.resolvido
+      }));
   }
 },
 
   mounted() {
-    this.$emit('update-title', 'Ocorrências'),
+    this.$emit('update-title', 'Histórico'),
     this.carregarOcorrencias();
   }
 };
@@ -386,11 +389,11 @@ color: white;
 border-color: #03B5AA;
 }
 
-.action-btn.validado {
+.action-btn.resolvido {
   border-color: #03B5AA;
 }
 
-.action-btn.validado .validate-button {
+.action-btn.resolvido .validate-button {
   color: #03B5AA;
 }
 </style>

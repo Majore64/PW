@@ -1,7 +1,7 @@
 <template>
   <div class="popup">
     <div class="popup-inner">
-      <h2 class="popup-title">{{ novoFuncionario.id ? 'Editar Funcionário' : 'Novo Funcionário' }}</h2>
+      <h2 class="popup-title">Novo Funcionário</h2>
 
       <form @submit.prevent="handleSubmit">
         <div class="form-container">
@@ -34,7 +34,7 @@
               required
               class="form-input"
             >
-              <option value="" disabled>Selecione uma função</option>
+              <option value="" disabled selected>Selecione uma função</option>
               <option v-for="(funcao, index) in funcoes" :key="index" :value="funcao">
                 {{ funcao }}
               </option>
@@ -48,7 +48,7 @@
               required
               class="form-input"
             >
-              <option value="" disabled>Selecione uma área</option>
+              <option value="" disabled selected>Selecione uma área</option>
               <option v-for="(localizacao, index) in localizacoes" :key="index" :value="localizacao">
                 {{ localizacao }}
               </option>
@@ -94,37 +94,52 @@ export default {
   },
   data() {
     return {
-      novoFuncionario: { ...this.funcionario }, // cópia segura
+      novoFuncionario: this.funcionario || {
+        id: null,
+        nome: '',
+        numero: '',
+        funcao: '',
+        area: '',
+        email: '',
+        contacto: ''
+      },
       localizacoes: [],
       funcoes: []
     };
   },
   created() {
+    // Buscar localizações e funções do localStorage ao criar o componente
     this.localizacoes = JSON.parse(localStorage.getItem('tipoLocalizacoes')) || [];
     this.funcoes = JSON.parse(localStorage.getItem('tipoFuncoes')) || [];
   },
   methods: {
     handleSubmit() {
-      let funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
+      // Buscar a lista atual de funcionários do localStorage
+      let funcionariosExistentes = JSON.parse(localStorage.getItem('funcionarios')) || [];
 
-      if (this.novoFuncionario.id) {
-        // Editar funcionário existente
-        const index = funcionarios.findIndex(f => f.id === this.novoFuncionario.id);
-        if (index !== -1) {
-          funcionarios.splice(index, 1, this.novoFuncionario);
-        }
-      } else {
-        // Criar novo funcionário
-        const novoId = funcionarios.length > 0
-          ? Math.max(...funcionarios.map(f => f.id)) + 1
-          : 1;
-
-        this.novoFuncionario.id = novoId;
-        funcionarios.push(this.novoFuncionario);
+      // Gerar id único: usar o maior id atual + 1, ou 1 se for o primeiro
+      let novoId = 1;
+      if (funcionariosExistentes.length > 0) {
+        const ids = funcionariosExistentes.map(f => f.id);
+        novoId = Math.max(...ids) + 1;
       }
 
-      localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
-      this.$emit('guardar', this.novoFuncionario);
+      // Criar o funcionário com id gerado
+      const funcionarioParaAdicionar = {
+        ...this.novoFuncionario,
+        id: novoId
+      };
+
+      // Adicionar o novo funcionário
+      funcionariosExistentes.push(funcionarioParaAdicionar);
+
+      // Guardar novamente no localStorage
+      localStorage.setItem('funcionarios', JSON.stringify(funcionariosExistentes));
+
+      // Emitir evento para componente pai, se necessário
+      this.$emit('guardar', funcionarioParaAdicionar);
+
+      // Fechar o popup
       this.fecharPopup();
     },
     fecharPopup() {
@@ -133,7 +148,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .popup {

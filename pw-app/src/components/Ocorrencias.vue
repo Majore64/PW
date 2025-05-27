@@ -1,42 +1,42 @@
 <template>
   <div class="full-page-box">
     <div class="section section-1">
-      <div class="box box-1">
+      <button @click="toggleFiltroNaoValidadas('validadas')" class="box">
         <div class="circle blue">
           <span class="material-icons blue-icon">edit</span>
         </div>
         <div class="text">
           <span class="label">Por validar</span>
-          <span class="value">7</span>
+          <span class="value">{{ ocorrenciasNaoValidadas }}</span>
         </div>
-      </div>
-      <div class="box box-2">
+      </button>
+      <button @click="toggleFiltroNaoAlocacao('validadas')" class="box">
         <div class="circle orange">
           <span class="material-icons yellow-icon">block</span>
         </div> 
         <div class="text">
           <span class="label">Não Atribuídas</span>
-          <span class="value">2</span>
+          <span class="value">{{ ocorrenciasNaoAtribuidas }}</span>
         </div>
-      </div>
-      <div class="box box-3">
+      </button>
+      <button @click="toggleFiltroValidacao('validadas')" class="box">
         <div class="circle pink">
-          <span class="material-icons pink-icon">hourglass_empty</span>
-        </div>
-        <div class="text">
-          <span class="label">Pendentes</span>
-          <span class="value">10</span>
-        </div>
-      </div>
-      <div class="box box-4">
-        <div class="circle cyan">
-          <span class="material-icons green-icon">check_circle</span>
+          <span class="material-icons pink-icon">check_circle</span>
         </div>
         <div class="text">
           <span class="label">Validadas</span>
-          <span class="value">26</span>
+          <span class="value">{{ ocorrenciasValidadas }}</span>
         </div>
-      </div>
+      </button>
+      <button @click="toggleFiltroAlocadas('validadas')" class="box">
+        <div class="circle cyan">
+          <span class="material-icons green-icon">hourglass_empty</span>
+        </div>
+        <div class="text">
+          <span class="label">Atribuidas</span>
+          <span class="value">{{ ocorrenciasAtribuidas }}</span>
+        </div>
+      </button>
     </div>
     <div class="page-content">
       <!-- Filtros como abas horizontais -->
@@ -91,7 +91,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="ocorrencia in ocorrenciasFiltradas" :key="ocorrencia.id">
+            <tr v-for="ocorrencia in ocorrenciasFiltradas" :key="ocorrencia.id" >
               <td>{{ ocorrencia.id }}</td>
               <td>{{ ocorrencia.alertaPor }}</td>
               <td>{{ ocorrencia.tipo }}</td>
@@ -145,6 +145,8 @@ export default {
 
       termoPesquisa: '',
       filtroAtivo: 'todos',
+      filtroValidacao: null,  
+      filtroAlocacao: null,
       paginaAtual: 1,
       itensPorPagina: 9,
 
@@ -180,6 +182,20 @@ export default {
         );
       }
 
+      // Aplica filtro de validação
+      if (this.filtroValidacao === 'validadas') {
+        filtradas = filtradas.filter(o => o.validado);
+      } else if (this.filtroValidacao === 'naoValidadas') {
+        filtradas = filtradas.filter(o => !o.validado);
+      }
+
+      // Aplica filtro de alocação
+      if (this.filtroAlocacao === 'naoAlocadas') {
+        filtradas = filtradas.filter(o => o.alocadoA === "-");
+      } else if (this.filtroAlocacao === 'alocadas') {
+        filtradas = filtradas.filter(o => o.alocadoA !== "-" && o.alocadoA !== "");
+      }
+
       const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
       return filtradas.slice(inicio, inicio + this.itensPorPagina);
     },
@@ -205,6 +221,20 @@ export default {
       }
 
       return Math.ceil(total.length / this.itensPorPagina);
+    },
+
+    ocorrenciasNaoValidadas(){
+      return this.ocorrencias.filter(o => !o.validado).length;
+    },
+
+    ocorrenciasValidadas(){
+      return this.ocorrencias.filter(o => o.validado).length;
+    },
+    ocorrenciasNaoAtribuidas() {
+      return this.ocorrencias.filter(o => o.alocadoA === "-").length;
+    },
+    ocorrenciasAtribuidas() {
+      return this.ocorrencias.filter(o => o.alocadoA !== "-").length;
     }
   },
 
@@ -240,8 +270,8 @@ export default {
   carregarOcorrencias() {
     const ocorrenciasRaw = JSON.parse(localStorage.getItem('ocorrencias')) || [];
 
-    this.ocorrencias = ocorrenciasRaw.map((oc, index) => ({
-      id: index + 1,
+    this.ocorrencias = ocorrenciasRaw.map((oc) => ({
+      id: oc.id,
       alertaPor: oc.nomeFuncionario,
       tipo: oc.tipoOcorrencia,
       area: oc.localizacao,
@@ -249,6 +279,24 @@ export default {
       alocadoA: oc.alocadoA,
       validado: oc.validado 
     }));
+  },
+
+  toggleFiltroValidacao(tipo) {
+    this.filtroValidacao = this.filtroValidacao === tipo ? null : tipo;
+    this.filtroAlocacao = null;
+
+  },
+  toggleFiltroNaoValidadas() {
+  this.filtroValidacao = this.filtroValidacao === 'naoValidadas' ? null : 'naoValidadas';
+  this.filtroAlocacao = null;
+  },
+  toggleFiltroNaoAlocacao() {
+    this.filtroAlocacao = this.filtroAlocacao === 'naoAlocadas' ? null : 'naoAlocadas';
+    this.filtroValidacao = null;
+  },
+  toggleFiltroAlocadas() {
+    this.filtroAlocacao = this.filtroAlocacao === 'alocadas' ? null : 'alocadas';
+    this.filtroValidacao = null;
   }
 },
 
@@ -281,13 +329,27 @@ export default {
 .box {
   background-color: white;
   border-radius: 12px;
+  border: 1px solid #e0e0e0; 
   flex: 1;
   height: 100%;
   padding: 10px;
   display: flex;
   align-items: center;
-  gap:10px;
+  gap: 10px;
+  cursor: pointer; 
+  transition: box-shadow 0.2s; 
+}
 
+button.box {
+  width: 100%; 
+  text-align: left; 
+  justify-content: flex-start; 
+  outline: none; 
+  border-radius: 12px;
+}
+
+button.box:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
 }
 
 .circle {
