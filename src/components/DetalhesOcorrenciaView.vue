@@ -122,21 +122,22 @@ onMounted(() => {
   try {
     const id = route.params.id;
     const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-
-    // Add debug logging
-    console.log('ID procurado:', id);
-    console.log('Todas ocorrências:', ocorrencias);
-
     const found = ocorrencias.find(o => o.id === id);
 
-    // Debug the found occurrence
-    console.log('Ocorrência encontrada:', found);
-    console.log('Materiais:', found?.materiais);
-
     if (found) {
-      // Ensure materials array exists
-      found.materiais = found.materiais || [];
-      ocorrencia.value = found;
+      // Transform data to match new structure
+      ocorrencia.value = {
+        id: found.id,
+        tipo: found.tipoOcorrencia || found.tipo,
+        data: found.data,
+        zona: found.tipoLocalizacoes?.split(' - ')[0] || found.zona,
+        andar: found.tipoLocalizacoes?.split(' - ')[1] || found.andar,
+        email: found.nomeFuncionario || found.email,
+        materiais: found.materiais || [],
+        descricao: found.descricao,
+        imagem: found.imagem,
+        estado: found.estado || 'Em Análise'
+      };
     } else {
       console.error('Ocorrência não encontrada:', id);
       router.push('/historico');
