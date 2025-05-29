@@ -1,6 +1,6 @@
 <template>
   <div class="historico-page">
-     <div class="header">
+    <div class="header">
       <button @click="router.back()" class="back-button">←</button>
       <h2>Histórico de Ocorrências</h2>
     </div>
@@ -9,7 +9,7 @@
       <thead>
         <tr>
           <th>Tipo</th>
-          <th>Email</th>
+          <th>Funcionário</th>
           <th>Localização</th>
           <th>Estado</th>
           <th>Ações</th>
@@ -17,9 +17,9 @@
       </thead>
       <tbody>
         <tr v-for="ocorrencia in ocorrencias" :key="ocorrencia.id">
-          <td>{{ ocorrencia.tipo }}</td>
-          <td>{{ ocorrencia.email }}</td>
-          <td>{{ ocorrencia.zona }} - {{ ocorrencia.andar }}</td>
+          <td>{{ ocorrencia.tipoOcorrencia }}</td>
+          <td>{{ ocorrencia.nomeFuncionario }}</td>
+          <td>{{ ocorrencia.tipoLocalizacoes }}</td>
           <td>{{ ocorrencia.estado || 'Em Análise' }}</td>
           <td>
             <button @click="verDetalhes(ocorrencia.id)" class="btn-detalhes">
@@ -42,9 +42,16 @@ const store = useOcorrenciasStore()
 const ocorrencias = ref([])
 
 onMounted(() => {
-  // Get occurrences from localStorage
+  // Get occurrences from localStorage based on new data structure
   const savedOcorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
-  ocorrencias.value = savedOcorrencias
+  // Transform data to match new structure if needed
+  ocorrencias.value = savedOcorrencias.map(o => ({
+    id: o.id,
+    tipoOcorrencia: o.tipo,
+    nomeFuncionario: o.nomeFuncionario || 'Não especificado',
+    tipoLocalizacoes: o.tipoLocalizacoes || `${o.zona} - ${o.andar}`,
+    estado: o.estado || 'Em Análise'
+  }))
   console.log('Ocorrências carregadas:', ocorrencias.value)
 })
 

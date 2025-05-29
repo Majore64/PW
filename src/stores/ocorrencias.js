@@ -6,17 +6,22 @@ export const useOcorrenciasStore = defineStore('ocorrencias', {
   }),
   actions: {
     adicionarOcorrencia(ocorrencia) {
+      // Ensure materials is an array
+      ocorrencia.materiais = ocorrencia.materiais || [];
+
       // Get existing occurrences
-      const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
+      const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
 
       // Add new occurrence
-      ocorrencias.push(ocorrencia)
+      ocorrencias.push(ocorrencia);
 
       // Save to localStorage
-      localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias))
+      localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
 
       // Update store state
-      this.ocorrencias = ocorrencias
+      this.ocorrencias = ocorrencias;
+
+      console.log('Ocorrência salva com materiais:', ocorrencia.materiais);
     }
   }
 })
