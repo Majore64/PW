@@ -4,7 +4,7 @@
         <button @click="$router.back()" class="back-btn">
           <span class="material-icons">arrow_back</span>
         </button>
-        <h2>Ocorrência #{{ ocorrencia.numero }}</h2>
+        <h2>Detalhes da Ocorrência</h2>
       </div>
   
       <!-- Abas de navegação -->
@@ -51,21 +51,34 @@
             <label>Funcionário que alertou</label>
             <p>{{ ocorrencia.alertaPor }}</p>
           </div>
+          <div class="info-item" v-if="ocorrencia.materiais && ocorrencia.materiais.length > 0">
+            <label>Materiais utilizados</label>
+            <div class="materiais-grid">
+              <div v-for="(material, index) in ocorrencia.materiais" :key="index" class="material-item">
+                <div class="material-nome">{{ material.nome }}</div>
+                <div class="material-quantidade">Quantidade: {{ material.quantidade }}</div>
+              </div>
+            </div>
+          </div>
           <div class="info-item">
-            <label>Funcionário Alocado *</label>
-            <select v-model="ocorrencia.funcionarioAlocado" class="funcionario-select">
+            <label>Funcionário Alocado</label>
+            <div v-if="ocorrencia.estado === 'Validado' && ocorrencia.funcionarioAlocado">
+              <p>{{ ocorrencia.funcionarioAlocado.nome || ocorrencia.funcionarioAlocado }}</p>
+            </div>
+            <select 
+              v-else
+              v-model="ocorrencia.funcionarioAlocado" 
+              class="funcionario-select"
+            >
               <option value="">Selecione um funcionário</option>
               <option 
                 v-for="funcionario in funcionarios" 
                 :key="funcionario.numero"
                 :value="funcionario"
               >
-                {{ funcionario.nome }} ({{ funcionario.funcao }})
+                {{ funcionario.nome }} - {{ funcionario.funcao }}
               </option>
             </select>
-            <div v-if="ocorrencia.funcionarioAlocado" class="funcionario-selecionado">
-              <p>Alocado: {{ ocorrencia.funcionarioAlocado.nome }} ({{ ocorrencia.funcionarioAlocado.numero }})</p>
-            </div>
           </div>
         </div>
       </div>
@@ -185,7 +198,7 @@
       <!-- Rodapé -->
       <div class="ocorrencia-footer">
         <div class="action-buttons">
-          <button class="validar-btn" @click="validarOcorrencia" v-if="abaAtiva === 'detalhes'">Validar</button>
+          <button class="validar-btn" @click="validarOcorrencia" v-if="abaAtiva === 'detalhes'" :disabled="!formularioValido || ocorrencia.estado === 'Validado'">Validar</button>
           <button class="eliminar-btn" @click="eliminarOcorrencia">Eliminar</button>
           <button class="guardar-btn" @click="guardarAlocacao" v-if="abaAtiva === 'alocacao'">Guardar</button>
         </div>
@@ -196,64 +209,35 @@
   <script>
   export default {
     name: 'DetalhesOcorrencia',
+    props: ['id'],
     data() {
       return {
         abaAtiva: 'detalhes', // 'detalhes' ou 'alocacao'
         ocorrencia: {
-          numero: '1234',
-          localizacao: 'Piso 1, sala 3',
+          numero: '',
+          localizacao: '',
           descricao: 'Falta material de diagnóstico médico (estetoscópio, medidor de tensão, oxímetro) na sala 3 do piso 1.',
-          tipo: 'Falta de material',
-          data: '17/03/2025',
-          alertaPor: 'João Ribeiro',
-          estado: 'Por validar',
-          localizacaoSelecionada: 'Piso 1, sala 3',
+          tipo: '',
+          data: '',
+          alertaPor: '',
+          estado: '',
+          localizacaoSelecionada: '',
           funcionarioSelecionado: null,
           tipoOcorrencia: 'Falta de material',
-          estadoOcorrencia: 'Pendente'
+          estadoOcorrencia: 'Pendente',
+          funcionarioAlocado: null,
         },
-        funcionarios: [
-          {
-            numero: 'f1234',
-            nome: 'João Ribeiro',
-            funcao: 'Auxiliar de Enfermagem',
-            area: 'Piso 1, Sala 3'
-          },
-          {
-            numero: 'f3645',
-            nome: 'João Antunes',
-            funcao: 'Enfermeiro',
-            area: 'Piso 1, sala 5'
-          },
-          {
-            numero: 'f4356',
-            nome: 'Joana Coelho',
-            funcao: 'Médico',
-            area: 'Piso 1, sala 7'
-          },
-          {
-            numero: 'f9046',
-            nome: 'José Monteiro',
-            funcao: 'Auxiliar de Limpeza',
-            area: 'Piso 1, sala 3'
-          },
-          {
-            numero: 'f8935',
-            nome: 'Francisca Ribeiro',
-            funcao: 'Auxiliar de Enfermagem',
-            area: 'Piso 1, sala 2'
-          },
-          {
-            numero: 'f2106',
-            nome: 'José Silva',
-            funcao: 'Auxiliar de Limpeza',
-            area: 'Piso 1, sala 6'
-          }
-        ],
+        funcionarios: [],
         filtroFuncao: '',
         filtroArea: ''
       };
     },
+
+    created() {
+    this.carregarOcorrencia();
+    this.carregarFuncionarios();
+    },
+    
     computed: {
       funcionariosFiltrados() {
         return this.funcionarios.filter(funcionario => {
@@ -270,9 +254,98 @@
       },
         funcionarioAlocado() {
         return this.funcionarioSelecionado || this.ocorrencia.funcionarioAlocado;
+      },
+
+      formularioValido() {
+        return this.ocorrencia.funcionarioAlocado !== null && 
+              this.ocorrencia.funcionarioAlocado !== undefined &&
+              this.ocorrencia.funcionarioAlocado !== '';
       }
     },
     methods: {
+
+      carregarFuncionarios() {
+        const funcionariosLS = JSON.parse(localStorage.getItem('funcionarios')) || [];
+        this.funcionarios = funcionariosLS.map(func => ({
+          id: func.id,
+          nome: func.nome,
+          numero: func.numero,
+          funcao: func.funcao,
+          area: func.area
+        }));
+      },
+
+      carregarOcorrencia() {
+        // Busca todas as ocorrências do localStorage
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+        
+        // Encontra a ocorrência com o ID da URL
+        const ocorrenciaEncontrada = ocorrencias.find(oc => oc.id === parseInt(this.id));
+        
+        if (ocorrenciaEncontrada) {
+
+          const temAlocado = ocorrenciaEncontrada.alocadoA && 
+                      ocorrenciaEncontrada.alocadoA !== '-' && 
+                      ocorrenciaEncontrada.alocadoA !== '';
+          const estaValidado = ocorrenciaEncontrada.validado;
+
+          // Mapeia os dados do localStorage para a estrutura do seu componente
+          this.ocorrencia = {
+            numero: ocorrenciaEncontrada.id,
+            localizacao: ocorrenciaEncontrada.localizacao,
+            descricao: this.ocorrencia.descricao, // Mantém a descrição padrão
+            tipo: ocorrenciaEncontrada.tipoOcorrencia,
+            data: ocorrenciaEncontrada.data,
+            materiais: ocorrenciaEncontrada.materiais || [],
+            alertaPor: ocorrenciaEncontrada.nomeFuncionario,
+            estado: ocorrenciaEncontrada.validado ? 'Validado' : 'Por validar',
+            funcionarioAlocado: temAlocado ? ocorrenciaEncontrada.alocadoA : null
+          };
+          
+          // Se estiver validado e tiver alocado, tenta encontrar o objeto completo do funcionário
+          if (temAlocado && estaValidado) {
+            const funcAlocado = this.funcionarios.find(f => 
+              f.nome === ocorrenciaEncontrada.alocadoA || 
+              f.numero === ocorrenciaEncontrada.alocadoA
+            );
+            
+            if (funcAlocado) {
+              this.ocorrencia.funcionarioAlocado = funcAlocado;
+            }
+          } else if (temAlocado) {
+            // Se não estiver validado mas tiver alocado, permite edição
+            const funcAlocado = this.funcionarios.find(f => 
+              f.nome === ocorrenciaEncontrada.alocadoA || 
+              f.numero === ocorrenciaEncontrada.alocadoA
+            );
+            
+            if (funcAlocado) {
+              this.ocorrencia.funcionarioAlocado = funcAlocado;
+            }
+          }
+
+          // Preenche os campos da aba de alocação
+          this.localizacaoSelecionada = ocorrenciaEncontrada.localizacao;
+          this.tipoOcorrencia = ocorrenciaEncontrada.tipoOcorrencia;
+          this.estadoOcorrencia = ocorrenciaEncontrada.resolvido ? 'Resolvido' : 'Pendente';
+          
+          // Se houver funcionário alocado, tenta encontrá-lo na lista
+          if (ocorrenciaEncontrada.alocadoA) {
+            const funcAlocado = this.funcionarios.find(
+              f => f.nome === ocorrenciaEncontrada.alocadoA
+            );
+            if (funcAlocado) {
+              this.funcionarioSelecionado = funcAlocado;
+              this.ocorrencia.funcionarioAlocado = funcAlocado;
+            }
+          }
+        } else {
+          console.error('Ocorrência não encontrada');
+          // Redireciona ou mostra mensagem de erro
+          this.$router.push({ name: 'Ocorrencias' });
+        }
+      },
+
       alocarFuncionario(funcionario) {
         this.funcionarioAlocado = funcionario;
       },
@@ -303,9 +376,67 @@
             tipo: this.tipoOcorrencia,
             estado: this.estadoOcorrencia
         });
+      },
+
+      async validarOcorrencia() {
+        if (!this.ocorrencia.funcionarioAlocado) {
+          alert('Por favor, selecione um funcionário para alocar');
+          return;
+        }
+
+        try {
+          // 1. Atualizar a ocorrência no localStorage
+          const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+          const ocorrenciaIndex = ocorrencias.findIndex(oc => oc.id === parseInt(this.id));
+          
+          if (ocorrenciaIndex !== -1) {
+            // Atualiza os dados da ocorrência
+            ocorrencias[ocorrenciaIndex] = {
+              ...ocorrencias[ocorrenciaIndex],
+              alocadoA: this.ocorrencia.funcionarioAlocado.nome,
+              validado: true
+            };
+            
+            localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
+            
+            // 2. Atualizar os materiais no localStorage
+            await this.atualizarStockMateriais(ocorrencias[ocorrenciaIndex].materiais);
+            
+            // 3. Redirecionar para a página de ocorrências
+            this.$router.push({ name: 'Ocorrencias' });
+          }
+        } catch (error) {
+          console.error('Erro ao validar ocorrência:', error);
+          alert('Ocorreu um erro ao validar a ocorrência');
+        }
+      },
+      
+      async atualizarStockMateriais(materiaisOcorrencia) {
+        if (!materiaisOcorrencia || materiaisOcorrencia.length === 0) return;
+
+        // Obter os materiais atuais do localStorage
+        let materiais = JSON.parse(localStorage.getItem('materiais')) || [];
         
-        // Aqui você pode adicionar a lógica para salvar no backend
-      }
+        // Criar um mapa para acesso rápido por nome
+        const materiaisMap = new Map(materiais.map(m => [m.nomeMaterial, m]));
+
+        materiaisOcorrencia.forEach(matOcorrencia => {
+          const material = materiaisMap.get(matOcorrencia.nome);
+          if (material) {
+            // Subtrai a quantidade utilizada da quantidade disponível
+            material.quantRest -= matOcorrencia.quantidade;
+            if (material.quantRest < 0) {
+              material.quantRest = 0;
+            }
+          }
+        });
+
+        // Converter o Map de volta para array
+        materiais = Array.from(materiaisMap.values());
+        
+        // Atualizar o localStorage
+        localStorage.setItem('materiais', JSON.stringify(materiais));
+      },
     }
   };
   </script>
@@ -410,6 +541,32 @@
     color: #333;
     border-bottom: 1px solid #eee;
   }
+
+  css
+.materiais-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.material-item {
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.material-nome {
+  font-weight: bold;
+  color:#03B5AA;
+  margin-bottom: 5px;
+}
+
+.material-quantidade {
+  font-size: 0.9rem;
+  color: #666;
+}
   
   .status-section {
     display: flex;
@@ -435,20 +592,6 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   margin-top: 5px;
-}
-
-.funcionario-selecionado {
-  margin-top: 10px;
-  padding: 8px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.funcionario-selecionado p {
-  margin: 0;
-  color: #03B5AA;
-  font-weight: bold;
 }
   
   /* Filtros */

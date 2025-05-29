@@ -103,7 +103,7 @@
                   @click="verPerfil(ocorrencia)" 
                   class="action-btn" 
                   :class="{ 'validado': ocorrencia.validado }"
-                  :disabled="ocorrencia.validado"
+    
                   >
                   <span class="validate-button">{{ ocorrencia.validado ? 'validado' : 'validar' }}</span>
                 </button>
@@ -142,21 +142,16 @@ export default {
       popupTriggers: {
         buttonTrigger: false,
       },
-
       termoPesquisa: '',
       filtroAtivo: 'todos',
       filtroValidacao: null,  
       filtroAlocacao: null,
       paginaAtual: 1,
-      itensPorPagina: 9,
-
+      itensPorPagina: 7,
       ocorrencias: [],
-
+      tiposOcorrencia: [], // Novo: armazena tipos de ocorrência
       tabs: [
-        { id: 'todos', label: 'Todas Ocorrências' },
-        { id: 'materialFalta', label: 'Material em falta' },
-        { id: 'materialMAlocado', label: 'Material mal alocado' },
-        { id: 'limpeza', label: 'Necessário limpeza' }
+        { id: 'todos', label: 'Todas Ocorrências' }
       ]
     };
   },
@@ -165,12 +160,12 @@ export default {
     ocorrenciasFiltradas() {
       let filtradas = [...this.ocorrencias];
 
-      if (this.filtroAtivo === 'materialFalta') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('material em falta'));
-      } else if (this.filtroAtivo === 'materialMAlocado') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('material mal alocado'));
-      } else if (this.filtroAtivo === 'limpeza') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('necessario limpeza'));
+      // Novo: filtro dinâmico por tipo de ocorrência
+      if (this.filtroAtivo !== 'todos') {
+        const tabSelecionada = this.tabs.find(tab => tab.id === this.filtroAtivo);
+        if (tabSelecionada) {
+          filtradas = filtradas.filter(o => o.tipo === tabSelecionada.label);
+        }
       }
 
       if (this.termoPesquisa) {
@@ -202,13 +197,11 @@ export default {
 
     totalPaginas() {
       let total = [...this.ocorrencias];
-
-      if (this.filtroAtivo === 'materialFalta') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('material em falta'));
-      } else if (this.filtroAtivo === 'materialMAlocado') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('material mal alocado'));
-      } else if (this.filtroAtivo === 'limpeza') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('necessário limpeza'));
+      if (this.filtroAtivo !== 'todos') {
+        const tabSelecionada = this.tabs.find(tab => tab.id === this.filtroAtivo);
+        if (tabSelecionada) {
+          total = total.filter(o => o.tipo === tabSelecionada.label);
+        }
       }
 
       if (this.termoPesquisa) {
@@ -281,6 +274,23 @@ export default {
     }));
   },
 
+  carregarTabsOcorrencia() {
+    // Busca os tipos de ocorrência do localStorage
+    const tipos = JSON.parse(localStorage.getItem('tipoOcorrencias')) || [];
+    const tabsTipos = tipos.map(tipo => ({
+      id: this.criarIdDoTipo(tipo),
+      label: tipo
+    }));
+    this.tabs = [
+      { id: 'todos', label: 'Todas Ocorrências' },
+      ...tabsTipos
+    ];
+  },
+
+  criarIdDoTipo(tipo) {
+    return tipo.toLowerCase().replace(/\s+/g, '_').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  },
+
   toggleFiltroValidacao(tipo) {
     this.filtroValidacao = this.filtroValidacao === tipo ? null : tipo;
     this.filtroAlocacao = null;
@@ -301,7 +311,8 @@ export default {
 },
 
   mounted() {
-    this.$emit('update-title', 'Ocorrências'),
+    this.$emit('update-title', 'Ocorrências');
+    this.carregarTabsOcorrencia(); // Novo: carrega tabs dinâmicas
     this.carregarOcorrencias();
   }
 };
