@@ -51,8 +51,8 @@
         <div class="info-section">
           <h2 class="section-title">Materiais</h2>
           <div class="materials-list">
-          <div v-if="ocorrencia?.materiais && ocorrencia.materiais.length > 0">
-            <div v-for="material in ocorrencia.materiais" :key="material.nomeMaterial" class="material-item">
+          <div v-if="materiais.length > 0">
+            <div v-for="material in materiais" :key="material.id" class="material-item">
               <span class="material-name">
                 {{ material.nomeMaterial }} <span class="material-quantity">({{ material.quantidade }})</span>
               </span>
@@ -117,22 +117,24 @@ import imagemExemplo from '@/assets/exemplo.png';
 const route = useRoute();
 const router = useRouter();
 const ocorrencia = ref(null);
+const materiais = ref([]); // NOVO
 
 onMounted(() => {
   try {
     const id = route.params.id;
     const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-    const found = ocorrencias.find(o => o.id === id);
+    const found = ocorrencias.find(o => String(o.id) === String(id));
+
+    // Buscar todos os materiais do localStorage
+    materiais.value = JSON.parse(localStorage.getItem('materiais') || '[]');
 
     if (found) {
-      // Transform data to match new structure
       ocorrencia.value = {
         id: found.id,
         tipo: found.tipoOcorrencia || found.tipo,
         data: found.data,
-        localizacao: found.localizacao || found.tipoLocalizacoes || found.zona || '', // usa sempre localizacao
+        localizacao: found.localizacao || found.tipoLocalizacoes || found.zona || '',
         email: found.nomeFuncionario || found.email,
-        materiais: found.materiais || [],
         descricao: found.descricao,
         imagem: found.imagem,
         estado: found.estado || 'Em Análise'
