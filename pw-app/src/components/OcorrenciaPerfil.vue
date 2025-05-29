@@ -354,10 +354,12 @@
         console.log('Ocorrência validada:', this.ocorrencia);
       },
       eliminarOcorrencia() {
-        if (confirm('Tem certeza que deseja eliminar esta ocorrência?')) {
-          console.log('Ocorrência eliminada:', this.ocorrencia.numero);
+          // Remove a ocorrência do localStorage
+          const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+          const novasOcorrencias = ocorrencias.filter(oc => oc.id !== parseInt(this.id));
+          localStorage.setItem('ocorrencias', JSON.stringify(novasOcorrencias));
+          // Redireciona para a página de ocorrências
           this.$router.push({ name: 'Ocorrencias' });
-        }
       },
       guardarAlocacao() {
         if (!this.funcionarioAlocado) {
