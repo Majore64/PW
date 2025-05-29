@@ -14,7 +14,7 @@
           </button>
         </div>
 
-        <!-- Barra de pesquisa e botão de criar ocorrencia -->
+        <!-- Barra de pesquisa -->
         <div class="search-wrapper">
           <input 
             type="text" 
@@ -39,7 +39,7 @@
               <th>Localização</th>
               <th>Data</th>
               <th>Alocado a</th>
-              <th>Estado</th>
+              <th>Detalhes</th>
             </tr>
           </thead>
           <tbody>
@@ -80,12 +80,8 @@
 </template>
 
 <script>
-
 export default {
-  name: 'OcorrenciasPage',
-
-  components: {
-  },
+  name: 'HistoricoPage',
 
   data() {
     return {
@@ -93,14 +89,9 @@ export default {
       filtroAtivo: 'todos',
       paginaAtual: 1,
       itensPorPagina: 9,
-
       ocorrencias: [],
-
       tabs: [
-        { id: 'todos', label: 'Todas Ocorrências' },
-        { id: 'materialFalta', label: 'Material em falta' },
-        { id: 'materialMAlocado', label: 'Material mal alocado' },
-        { id: 'limpeza', label: 'Necessário limpeza' }
+        { id: 'todos', label: 'Todas Ocorrências' }
       ]
     };
   },
@@ -109,20 +100,22 @@ export default {
     ocorrenciasFiltradas() {
       let filtradas = [...this.ocorrencias];
 
-      if (this.filtroAtivo === 'materialFalta') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('material em falta'));
-      } else if (this.filtroAtivo === 'materialMAlocado') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('material mal alocado'));
-      } else if (this.filtroAtivo === 'limpeza') {
-        filtradas = filtradas.filter(o => o.tipo.toLowerCase().includes('necessario limpeza'));
+      // Filtro por tipo de ocorrência
+      if (this.filtroAtivo !== 'todos') {
+        const tabSelecionada = this.tabs.find(tab => tab.id === this.filtroAtivo);
+        if (tabSelecionada) {
+          filtradas = filtradas.filter(o => o.tipo === tabSelecionada.label);
+        }
       }
 
+      // Filtro por pesquisa
       if (this.termoPesquisa) {
         const termo = this.termoPesquisa.toLowerCase();
         filtradas = filtradas.filter(o =>
           o.alertaPor.toLowerCase().includes(termo) || 
           o.alocadoA.toLowerCase().includes(termo) ||
-          o.area.toLowerCase().includes(termo)
+          o.area.toLowerCase().includes(termo) ||
+          o.id.toString().includes(termo)
         );
       }
 
@@ -133,12 +126,11 @@ export default {
     totalPaginas() {
       let total = [...this.ocorrencias];
 
-      if (this.filtroAtivo === 'materialFalta') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('material em falta'));
-      } else if (this.filtroAtivo === 'materialMAlocado') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('material mal alocado'));
-      } else if (this.filtroAtivo === 'limpeza') {
-        total = total.filter(o => o.tipo.toLowerCase().includes('necessário limpeza'));
+      if (this.filtroAtivo !== 'todos') {
+        const tabSelecionada = this.tabs.find(tab => tab.id === this.filtroAtivo);
+        if (tabSelecionada) {
+          total = total.filter(o => o.tipo === tabSelecionada.label);
+        }
       }
 
       if (this.termoPesquisa) {
@@ -146,7 +138,8 @@ export default {
         total = total.filter(o =>
           o.alertaPor.toLowerCase().includes(termo) || 
           o.alocadoA.toLowerCase().includes(termo) ||
-          o.area.toLowerCase().includes(termo)
+          o.area.toLowerCase().includes(termo) ||
+          o.id.toString().includes(termo)
         );
       }
 
@@ -155,50 +148,68 @@ export default {
   },
 
   methods: {
-  pesquisar() {
-    this.paginaAtual = 1;
-  },
+    pesquisar() {
+      this.paginaAtual = 1;
+    },
 
-  verPerfil(ocorrencia) {
-    this.$router.push({ name: 'OcorrenciaPerfil', params: { id: ocorrencia.id } });
-  },
+    verPerfil(ocorrencia) {
+      this.$router.push({ name: 'OcorrenciaPerfil', params: { id: ocorrencia.id } });
+    },
 
-  proximaPagina() {
-    if (this.paginaAtual < this.totalPaginas) {
-      this.paginaAtual++;
-    }
-  },
+    proximaPagina() {
+      if (this.paginaAtual < this.totalPaginas) {
+        this.paginaAtual++;
+      }
+    },
 
-  paginaAnterior() {
-    if (this.paginaAtual > 1) {
-      this.paginaAtual--;
-    }
-  },
+    paginaAnterior() {
+      if (this.paginaAtual > 1) {
+        this.paginaAtual--;
+      }
+    },
 
-  irParaPagina(n) {
-    this.paginaAtual = n;
-  },
+    irParaPagina(n) {
+      this.paginaAtual = n;
+    },
 
-  carregarOcorrencias() {
-    const ocorrenciasRaw = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+    carregarOcorrencias() {
+      const ocorrenciasRaw = JSON.parse(localStorage.getItem('ocorrencias')) || [];
 
-    this.ocorrencias = ocorrenciasRaw
-      .filter(oc=> oc.validado === true)
-      .map((oc) => ({
-        id: oc.id,
-        alertaPor: oc.nomeFuncionario,
-        tipo: oc.tipoOcorrencia,
-        area: oc.localizacao,
-        data: oc.data,
-        alocadoA: oc.alocadoA,
-        validado: oc.validado,
-        resolvido: oc.resolvido
+      this.ocorrencias = ocorrenciasRaw
+        .filter(oc => oc.resolvido === true)
+        .map((oc) => ({
+          id: oc.id,
+          alertaPor: oc.nomeFuncionario,
+          tipo: oc.tipoOcorrencia,
+          area: oc.localizacao,
+          data: oc.data,
+          alocadoA: oc.alocadoA,
+          validado: oc.validado,
+          resolvido: oc.resolvido
+        }));
+    },
+
+    carregarTabsOcorrencia() {
+      // Busca os tipos de ocorrência do localStorage
+      const tipos = JSON.parse(localStorage.getItem('tipoOcorrencias')) || [];
+      const tabsTipos = tipos.map(tipo => ({
+        id: this.criarIdDoTipo(tipo),
+        label: tipo
       }));
-  }
-},
+      this.tabs = [
+        { id: 'todos', label: 'Todas Ocorrências' },
+        ...tabsTipos
+      ];
+    },
+
+    criarIdDoTipo(tipo) {
+      return tipo.toLowerCase().replace(/\s+/g, '_').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+  },
 
   mounted() {
-    this.$emit('update-title', 'Histórico'),
+    this.$emit('update-title', 'Histórico');
+    this.carregarTabsOcorrencia();
     this.carregarOcorrencias();
   }
 };

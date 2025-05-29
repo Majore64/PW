@@ -216,7 +216,7 @@
         ocorrencia: {
           numero: '',
           localizacao: '',
-          descricao: 'Falta material de diagnóstico médico (estetoscópio, medidor de tensão, oxímetro) na sala 3 do piso 1.',
+          descricao: '',
           tipo: '',
           data: '',
           alertaPor: '',
@@ -293,7 +293,7 @@
           this.ocorrencia = {
             numero: ocorrenciaEncontrada.id,
             localizacao: ocorrenciaEncontrada.localizacao,
-            descricao: this.ocorrencia.descricao, // Mantém a descrição padrão
+            descricao: ocorrenciaEncontrada.descricao || '', 
             tipo: ocorrenciaEncontrada.tipoOcorrencia,
             data: ocorrenciaEncontrada.data,
             materiais: ocorrenciaEncontrada.materiais || [],

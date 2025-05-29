@@ -17,7 +17,7 @@
                   {{ funcionario.nome }}
                 </option>
               </select>
-  
+
               <h3>Tipo de ocorrência</h3>
               <select v-model="form.tipoOcorrencia" class="form-select">
                 <option disabled value="">Selecione o tipo</option>
@@ -29,7 +29,9 @@
                   {{ tipo.descricao }}
                 </option>
               </select>
-  
+            </div>
+
+            <div class="form-section">
               <h3>Localização Alocada</h3>
               <select v-model="form.localizacao" class="form-select">
                 <option disabled value="">Selecione o local</option>
@@ -41,12 +43,20 @@
                   {{ localizacao.descricao }}
                 </option>
               </select>
-            </div>
-  
-            <div class="form-section">
+
               <h3>Número funcionário</h3>
               <input v-model="form.numeroFuncionario" type="text" class="form-input" placeholder="139284321" />
-  
+            </div>
+
+            <div class="form-section">
+              <h3>Descrição</h3>
+              <input 
+                v-model="form.descricao" 
+                class="form-input-descricao" 
+                placeholder="Poça de água no corredor"
+                rows="3"
+              ></input>
+
               <h3>Data</h3>
               <input v-model="form.data" type="text" class="form-input" placeholder="24/07/2024" />
             </div>
@@ -122,6 +132,7 @@ export default {
         localizacao: '',
         numeroFuncionario: '',
         data: '',
+        descricao: '',
         materiais: [
           { nome: '', quantidade: '', quantidadeInvalida: false}
         ]
@@ -183,7 +194,7 @@ export default {
         materiais: materiaisValidos,
         alocadoA: "-",
         validado: false,
-        resolvido: false
+        resolvido: true
       };
 
       // Adicionar nova ocorrência
@@ -281,7 +292,7 @@ export default {
   watch: {
     'form.nomeFuncionario'(novoNome) {
       const funcionario = this.funcionarios.find(f => f.nome === novoNome);
-      this.form.numeroFuncionario = funcionario ? funcionario.id : '';
+      this.form.numeroFuncionario = funcionario ? funcionario.numero : '';
     }
   }
 }
@@ -349,6 +360,15 @@ export default {
     border: 1px solid #ddd;
     border-radius: 4px;
     margin-bottom: 10px;
+    background: white;
+    box-sizing: border-box;
+  }
+
+  .form-input-descricao {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     background: white;
     box-sizing: border-box;
   }
