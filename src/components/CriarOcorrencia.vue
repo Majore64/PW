@@ -28,24 +28,24 @@
 
           <div class="row">
             <div class="col">
-              <label>Zonaa</label>
-              <input v-model="zona" type="text" placeholder="Insira zona" />
-            </div>
-            <div class="col">
-              <label>Andar</label>
-              <input v-model="andar" type="text" placeholder="Ex: 2º Andar" />
+              <label>Localização</label>
+               <select v-model="localizacao">
+                <option disabled value="">Selecionar localização</option>
+                <option v-for="loc in localizacoes" :key="loc">{{ loc }}</option>
+              </select>
             </div>
           </div>
-          <!-- AQUI ENTRE A ZONA/ANDAR E A DESCRIÇÃO -->
+          
           <label>Material</label>
           <div class="row">
             <select v-model="materialSelecionado">
               <option disabled value="">Selecionar material</option>
               <option v-for="mat in materiais" :key="mat">{{ mat }}</option>
             </select>
-            <input
+         <input
               type="number"
               min="1"
+              :max="getMaxQtd(materialSelecionado)"
               v-model.number="quantidadeSelecionada"
               placeholder="Qtd."
               style="width: 70px"
@@ -54,13 +54,13 @@
           </div>
 
           <div class="materiais-lista">
-            <span
-              v-for="mat in materiaisEscolhidos"
-              :key="mat.nome"
-              class="material-tag">
-              {{ mat.nome }} ({{ mat.quantidade }})
-              <button @click="removerMaterial(mat.nome)">❌</button>
-            </span>
+           <span
+            v-for="mat in materiaisEscolhidos"
+            :key="mat.nomeMaterial"
+            class="material-tag">
+            {{ mat.nomeMaterial }} ({{ mat.quantidade }})
+            <button @click="removerMaterial(mat.nomeMaterial)">❌</button>
+          </span>
           </div>
 
           <label>Descrição</label>
@@ -101,74 +101,110 @@
   const route = useRoute()
   const router = useRouter()
   const store = useOcorrenciasStore()
-  const materiais = ['Luvas', 'Seringas', 'Máscaras', 'Leito', 'Cateter']
+  const materiais = ref([])
   const materialSelecionado = ref('')
   const quantidadeSelecionada = ref(1)
   const materiaisEscolhidos = ref([])
+  const localizacoes = ref([])
 
-      function adicionarMaterial() {
+    function adicionarMaterial() {
+        const stockMateriais = JSON.parse(localStorage.getItem('materiais') || '[]')
+        const matObj = stockMateriais.find(m => m.nomeMaterial === materialSelecionado.value)
+        const maxQtd = matObj ? matObj.quantidade : 0
+
+        if (quantidadeSelecionada.value > maxQtd) {
+          alert('Não pode pedir mais do que o stock disponível!')
+          return
+        }
+
         if (
           materialSelecionado.value &&
           quantidadeSelecionada.value > 0 &&
-          !materiaisEscolhidos.value.some(m => m.nome === materialSelecionado.value)
+          !materiaisEscolhidos.value.some(m => m.nomeMaterial === materialSelecionado.value)
         ) {
           materiaisEscolhidos.value.push({
-            nome: materialSelecionado.value,
-            quantidade: quantidadeSelecionada.value
+            nomeMaterial: materialSelecionado.value, // <-- ALTERADO
+            quantidade: quantidadeSelecionada.value,
+            quantidadeInvalida: false
           })
-          // Limpa seleção
           materialSelecionado.value = ''
           quantidadeSelecionada.value = 1
         }
       }
 
-      function removerMaterial(nome) {
-        materiaisEscolhidos.value = materiaisEscolhidos.value.filter(m => m.nome !== nome)
-      }
-  onMounted(() => {
-    tipoSelecionado.value = route.query.tipo || ''
-
-    // Carregar o email do localStorage
-    const userEmail = localStorage.getItem('userEmail')
-    if (userEmail) {
-      email.value = userEmail
+    function removerMaterial(nomeMaterial) {
+      materiaisEscolhidos.value = materiaisEscolhidos.value.filter(m => m.nomeMaterial !== nomeMaterial)
     }
-  })
+      function getMaxQtd(nome) {
+            const stockMateriais = JSON.parse(localStorage.getItem('materiais') || '[]')
+            const matObj = stockMateriais.find(m => m.nomeMaterial === nome)
+            return matObj ? matObj.quantidade : 1
+          }
+        onMounted(() => {
+        tipoSelecionado.value = route.query.tipo || ''
+
+        // Carregar o email do localStorage
+        const userEmail = localStorage.getItem('userEmail')
+        if (userEmail) {
+          email.value = userEmail
+        }
+
+        // Carregar o nome do utilizador Google do localStorage
+        const userData = localStorage.getItem('user')
+        if (userData) {
+          try {
+            const userObj = JSON.parse(userData)
+            if (userObj.name) {
+              nomeFuncionario.value = userObj.name
+            }
+          } catch (e) {
+            // Se der erro a fazer parse, ignora
+          }
+        }
+         const locs = JSON.parse(localStorage.getItem('tipoLocalizacoes') || '[]')
+          localizacoes.value = locs
+          const mats = JSON.parse(localStorage.getItem('materiais') || '[]')
+           materiais.value = mats.map(m => m.nomeMaterial)
+      })
     const tipoSelecionado = ref('')
       const email = ref('')
-      const zona = ref('')
-      const andar = ref('')
+      const nomeFuncionario = ref('')
+      const numeroFuncionario = ref('')
+      const alocadoA = ref('-')
+      const resolvido = ref(false)
+      const validado = ref(false)
+      const localizacao = ref('') 
       const descricao = ref('')
       const imagemSelecionada = ref(null)
       const imagemPreview = ref(null)
       const imagemBase64 = ref(null)
 
     function criarOcorrencia() {
-      // Prevent multiple submissions
-      if (!tipoSelecionado.value || !zona.value || !andar.value) {
-        return
-
+      const stockMateriais = JSON.parse(localStorage.getItem('materiais') || '[]')
+          for (const mat of materiaisEscolhidos.value) {
+            const matObj = stockMateriais.find(m => m.nomeMaterial === mat.nomeMaterial)
+            const maxQtd = matObj ? matObj.quantidade : 0
+            if (mat.quantidade > maxQtd) {
+              alert(`Não pode pedir mais ${mat.nomeMaterial} do que o stock disponível!`)
+              return
+            }
+          }
+        const novaOcorrencia = {
+          id: Date.now().toString(),
+          nomeFuncionario: nomeFuncionario.value,
+          numeroFuncionario: Number(numeroFuncionario.value), // <-- número
+          tipoOcorrencia: tipoSelecionado.value,
+          localizacao: localizacao.value,
+          data: new Date().toLocaleString(),
+          materiais: materiaisEscolhidos.value,
+          resolvido: resolvido.value,
+          validado: validado.value,
+          descricao: descricao.value,
+          imagem: imagemBase64.value || null,
+        }
+        store.adicionarOcorrencia(novaOcorrencia)
+        router.push(`/detalhes/${novaOcorrencia.id}`)
       }
-
-      const novaOcorrencia = {
-        id: Date.now().toString(),
-        tipo: tipoSelecionado.value,
-        data: new Date().toLocaleString(),
-        zona: zona.value,
-        andar: andar.value,
-        email: email.value,
-        materiais: materiaisEscolhidos.value,
-        descricao: descricao.value,
-        imagem: imagemBase64.value,
-        estado: 'Em Análise'
-      }
-
-      // Only save to store - remove direct localStorage manipulation
-      store.adicionarOcorrencia(novaOcorrencia)
-
-      // Navigate to details page
-      router.push(`/detalhes/${novaOcorrencia.id}`)
-    }
 
     const handleImageUpload = (event) => {
       const file = event.target.files[0]
