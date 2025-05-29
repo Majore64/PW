@@ -67,36 +67,58 @@
             <p>{{ contagemOcorrencias.resolvidas }}</p>
           </div>
         </div>
+
+        <div v-if="ocorrenciasFuncionario.length === 0" class="no-ocorrencias">
+          <p>Nenhuma ocorrência encontrada para este funcionário.</p>
+        </div>
   
-        <div class="ocorrencias-table">
+        <div class="ocorrencias-table" v-else>
           <table>
             <thead>
               <tr>
                 <th>Número</th>
                 <th>Localização</th>
-                <th>Alerta dado por</th>
                 <th>Data</th>
                 <th>Tipo de ocorrência</th>
-                <th>Validação</th>
+                <th>Status</th>
+                <th>Materiais</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(ocorrencia, index) in ocorrencias" :key="index">
-                <td>{{ ocorrencia.numero }}.</td>
+              <tr v-for="ocorrencia in ocorrenciasPaginadas" :key="ocorrencia.id">
+                <td>{{ ocorrencia.id }}</td>
                 <td>{{ ocorrencia.localizacao }}</td>
-                <td>{{ ocorrencia.alertaPor }}</td>
                 <td>{{ ocorrencia.data }}</td>
-                <td>{{ ocorrencia.tipo }}</td>
-                <td :class="ocorrencia.validacao.toLowerCase()">({{ ocorrencia.validacao }})</td>
+                <td>{{ ocorrencia.tipoOcorrencia }}</td>
+                <td :class="getStatusClass(ocorrencia)">
+                  {{ getStatusText(ocorrencia) }}
+                </td>
+                <td>
+                  <span v-if="ocorrencia.materiais && ocorrencia.materiais.length > 0">
+                    {{ ocorrencia.materiais.map(m => `${m.nome} (${m.quantidade})`).join(', ') }}
+                  </span>
+                  <span v-else>-</span>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
   
-        <div class="pagination">
-          <button>&lt; Previous</button>
-          <button v-for="n in 4" :key="n" :class="{ active: n === 1 }">{{ n }}</button>
-          <button>Next &gt;</button>
+        <div class="pagination" v-if="totalPaginas > 1">
+          <button @click="paginaAtual > 1 && (paginaAtual--)" :disabled="paginaAtual === 1">
+            &lt; Previous
+          </button>
+          <button 
+            v-for="n in totalPaginas" 
+            :key="n" 
+            :class="{ active: n === paginaAtual }"
+            @click="paginaAtual = n"
+          >
+            {{ n }}
+          </button>
+          <button @click="paginaAtual < totalPaginas && (paginaAtual++)" :disabled="paginaAtual === totalPaginas">
+            Next &gt;
+          </button>
         </div>
       </div>
   
@@ -112,9 +134,7 @@
         </button>
       </div>
   
-      <div class="perfil-footer" v-if="abaAtiva === 'ocorrencias'">
-        <button class="desassociar-btn">Desassociar</button>
-      </div>
+
 
       <PerfilPopup 
         v-if="mostrarPopupEdicao"
@@ -124,7 +144,7 @@
       />
 
     </div>
-  </template>
+</template>
   
 <script>
   import PerfilPopup from './PerfilPopup.vue';
@@ -138,70 +158,35 @@
         abaAtiva: 'perfil',
         funcionario: null, 
         mostrarPopupEdicao: false,
-        ocorrencias: [
-          {
-            numero: '01',
-            localizacao: 'Piso 1, sala 3',
-            alertaPor: 'João Ribeiro',
-            data: '17/03/2025',
-            tipo: 'Material danificado',
-            validacao: 'Resolvido'
-          },
-          {
-            numero: '076',
-            localizacao: 'Piso 1, sala 3',
-            alertaPor: 'Francisca Ribeiro',
-            data: '36 Months',
-            tipo: 'Falta de material',
-            validacao: 'Resolvido'
-          },
-          {
-            numero: '089',
-            localizacao: 'Piso 1, sala 3',
-            alertaPor: 'João Silva',
-            data: '25 Months',
-            tipo: 'Material mal alocado',
-            validacao: 'Resolvido'
-          },
-          {
-            numero: '0143',
-            localizacao: 'Piso 1, sala 3',
-            alertaPor: 'Joana Coelho',
-            data: '12 Months',
-            tipo: 'Falta de material',
-            validacao: 'Resolvido'
-          },
-          {
-            numero: '0243',
-            localizacao: 'Piso 1, sala 3',
-            alertaPor: 'João Ribeiro',
-            data: '5 Months',
-            tipo: 'Falta de material',
-            validacao: 'Pendente'
-          },
-          {
-            numero: '0457',
-            localizacao: 'Piso 1, sala 3',
-            alertaPor: 'José Monteiro',
-            data: '1 Month',
-            tipo: 'Limpeza',
-            validacao: 'Pendente'
-          }
-        ]
+        ocorrenciasFuncionario: [],
+        paginaAtual: 1,
+        itensPorPagina: 5
       };
     },
     computed: {
       contagemOcorrencias() {
         return {
-          pendentes: this.ocorrencias.filter(o => o.validacao.toLowerCase() === 'pendente').length,
-          resolvidas: this.ocorrencias.filter(o => o.validacao.toLowerCase() === 'resolvido').length
+          pendentes: this.ocorrenciasFuncionario.filter(o => !o.resolvido).length,
+          resolvidas: this.ocorrenciasFuncionario.filter(o => o.resolvido).length
         };
+      },
+      totalPaginas() {
+        return Math.ceil(this.ocorrenciasFuncionario.length / this.itensPorPagina);
+      },
+      ocorrenciasPaginadas() {
+        const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
+        const fim = inicio + this.itensPorPagina;
+        return this.ocorrenciasFuncionario.slice(inicio, fim);
       }
     },
     created() {
-      this.carregarFuncionario();
+      this.carregarDados();
     },
     methods: {
+      carregarDados() {
+        this.carregarFuncionario();
+        this.carregarOcorrencias();
+      },
       carregarFuncionario() {
         // Obter o ID do parâmetro da rota
         const funcionarioId = parseInt(this.$route.params.id);
@@ -218,9 +203,54 @@
           this.$router.push({ name: 'Funcionarios' });
         }
       },
+      carregarOcorrencias() {
+        if (!this.funcionario) return;
+        
+        // Obter as ocorrências do localStorage
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+        
+        // Filtrar ocorrências onde o funcionário é mencionado
+        // Pode ser por nome ou por ID do funcionário
+        this.ocorrenciasFuncionario = ocorrencias.filter(ocorrencia => {
+          return ocorrencia.nomeFuncionario === this.funcionario.nome || 
+                 ocorrencia.numeroFuncionario === this.funcionario.id;
+        });
+        
+        // Ordenar por data (mais recente primeiro)
+        this.ocorrenciasFuncionario.sort((a, b) => {
+          const dataA = this.parseData(a.data);
+          const dataB = this.parseData(b.data);
+          return dataB - dataA;
+        });
+      },
+      parseData(dataString) {
+        // Assumindo formato DD/MM/YYYY
+        const [dia, mes, ano] = dataString.split('/');
+        return new Date(ano, mes - 1, dia);
+      },
+      getStatusClass(ocorrencia) {
+        if (ocorrencia.resolvido) {
+          return 'resolvido';
+        } else if (ocorrencia.validado) {
+          return 'validado';
+        } else {
+          return 'pendente';
+        }
+      },
+      getStatusText(ocorrencia) {
+        if (ocorrencia.resolvido) {
+          return 'Resolvido';
+        } else if (ocorrencia.validado) {
+          return 'Validado';
+        } else {
+          return 'Pendente';
+        }
+      },
       atualizarFuncionario(funcionarioAtualizado) {
         this.funcionario = {...funcionarioAtualizado};
         this.mostrarPopupEdicao = false;
+        // Recarregar ocorrências caso o nome tenha mudado
+        this.carregarOcorrencias();
       },
       editarPerfil() {
         this.mostrarPopupEdicao = true;
@@ -239,7 +269,8 @@
           // Redirecionar para a lista de funcionários
           this.$router.push({ name: 'Funcionarios' });
         }
-      }
+      },
+
     }
   };
 </script>
@@ -370,6 +401,13 @@
     font-weight: bold;
     color: #03B5AA;
   }
+
+  .no-ocorrencias {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+  }
   
   .ocorrencias-table {
     overflow-x: auto;
@@ -396,10 +434,17 @@
   
   .ocorrencias-table td.resolvido {
     color: #4CAF50;
+    font-weight: bold;
+  }
+  
+  .ocorrencias-table td.validado {
+    color: #2196F3;
+    font-weight: bold;
   }
   
   .ocorrencias-table td.pendente {
     color: #FF9800;
+    font-weight: bold;
   }
   
   .pagination {
@@ -415,6 +460,11 @@
     background: white;
     cursor: pointer;
     border-radius: 4px;
+  }
+
+  .pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
   
   .pagination button.active {
@@ -451,16 +501,9 @@
     color: white;
   }
   
-  .desassociar-btn {
-    background: none;
-    color: #03B5AA;
-    border: 1px solid #03B5AA;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+
   
   .material-icons {
     font-size: 18px;
   }
-  </style>
+</style>

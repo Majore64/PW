@@ -63,35 +63,166 @@ export default {
   name: 'EstatisticasPage',
   data() {
     return {
-      topEmployees: [
-        { name: 'Lívia Bator', position: 'Enfermeira', image: '/img/employee1.jpg' },
-        { name: 'Randy Press', position: 'Funcionário de Limpeza', image: '/img/employee2.jpg' },
-        { name: 'Workman', position: 'Enfermeiro', image: '/img/employee3.jpg' }
-      ],
+      topEmployees: [],
       occurrenceData: {
-        labels: ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4', 'Sala 5'],
-        values: [15, 12, 8, 10, 7]
+        labels: [],
+        values: []
       },
       frequencyData: {
-        labels: ['Material em falta', 'Material mal alocado', 'Limpeza necessária'],
-        values: [25, 65, 35],
+        labels: [],
+        values: [],
         colors: ['#79B4A9', '#304D6D', '#03B5AA']
       },
       historyData: {
         labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
-        values: [20, 25, 30, 28, 35, 40, 45]
+        values: []
       }
     };
   },
   mounted() {
     this.$emit('update-title', 'Estatísticas');
+    this.loadDataFromLocalStorage();
     this.$nextTick(() => {
       this.renderCharts();
     });
   },
   methods: {
+    loadDataFromLocalStorage() {
+      try {
+        // Carregar funcionários
+        const funcionarios = JSON.parse(localStorage.getItem('filtroAtivotodosfuncionarios') || '[]');
+        
+        // Carregar ocorrências
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        
+        // Processar funcionários que mais contribuíram (baseado em ocorrências reportadas)
+        this.processTopEmployees(funcionarios, ocorrencias);
+        
+        // Processar ocorrências por localização
+        this.processLocationOccurrences(ocorrencias);
+        
+        // Processar frequência por tipo de ocorrência
+        this.processOccurrenceFrequency(ocorrencias);
+        
+        // Processar histórico (simulado baseado nos dados atuais)
+        this.processHistoryData(ocorrencias);
+        
+      } catch (error) {
+        console.error('Erro ao carregar dados do localStorage:', error);
+        this.setDefaultData();
+      }
+    },
+    
+    processTopEmployees(funcionarios, ocorrencias) {
+      // Contar ocorrências por funcionário
+      const funcionarioCount = {};
+      
+      ocorrencias.forEach(ocorrencia => {
+        const nome = ocorrencia.nomeFuncionario;
+        funcionarioCount[nome] = (funcionarioCount[nome] || 0) + 1;
+      });
+      
+      // Ordenar funcionários por número de ocorrências reportadas
+      const topFuncionarios = Object.entries(funcionarioCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 3);
+      
+      this.topEmployees = topFuncionarios.map(([nome]) => {
+        const funcionario = funcionarios.find(f => f.nome === nome);
+        return {
+          name: nome,
+          position: funcionario ? funcionario.funcao : 'Funcionário',
+          image: '/img/default-employee.jpg' // Imagem padrão
+        };
+      });
+      
+      // Se não houver ocorrências suficientes, preencher com funcionários padrão
+      while (this.topEmployees.length < 3 && funcionarios.length > 0) {
+        const funcionario = funcionarios[this.topEmployees.length];
+        if (funcionario && !this.topEmployees.find(emp => emp.name === funcionario.nome)) {
+          this.topEmployees.push({
+            name: funcionario.nome,
+            position: funcionario.funcao,
+            image: '/img/default-employee.jpg'
+          });
+        }
+      }
+    },
+    
+    processLocationOccurrences(ocorrencias) {
+      // Contar ocorrências por localização
+      const locationCount = {};
+      
+      ocorrencias.forEach(ocorrencia => {
+        const loc = ocorrencia.localizacao;
+        locationCount[loc] = (locationCount[loc] || 0) + 1;
+      });
+      
+      this.occurrenceData.labels = Object.keys(locationCount);
+      this.occurrenceData.values = Object.values(locationCount);
+      
+      // Se não houver dados, usar dados padrão
+      if (this.occurrenceData.labels.length === 0) {
+        this.occurrenceData.labels = ['Piso 1, sala 1', 'Piso 1, sala 2', 'Piso 2, sala 1'];
+        this.occurrenceData.values = [0, 0, 0];
+      }
+    },
+    
+    processOccurrenceFrequency(ocorrencias) {
+      // Contar por tipo de ocorrência
+      const typeCount = {};
+      
+      ocorrencias.forEach(ocorrencia => {
+        const tipo = ocorrencia.tipoOcorrencia;
+        typeCount[tipo] = (typeCount[tipo] || 0) + 1;
+      });
+      
+      this.frequencyData.labels = Object.keys(typeCount);
+      this.frequencyData.values = Object.values(typeCount);
+      
+      // Se não houver dados, usar dados padrão
+      if (this.frequencyData.labels.length === 0) {
+        this.frequencyData.labels = ['Material em falta', 'Material mal alocado', 'Limpeza necessária'];
+        this.frequencyData.values = [0, 0, 0];
+      }
+    },
+    
+    processHistoryData(ocorrencias) {
+      // Simular dados históricos baseados nas ocorrências atuais
+      // Em uma implementação real, você teria dados com timestamps
+      const totalOcorrencias = ocorrencias.length;
+      
+      // Simular crescimento ao longo dos meses
+      this.historyData.values = [
+        Math.max(0, totalOcorrencias - 6),
+        Math.max(0, totalOcorrencias - 5),
+        Math.max(0, totalOcorrencias - 4),
+        Math.max(0, totalOcorrencias - 3),
+        Math.max(0, totalOcorrencias - 2),
+        Math.max(0, totalOcorrencias - 1),
+        totalOcorrencias
+      ];
+    },
+    
+    setDefaultData() {
+      // Dados padrão caso não existam dados no localStorage
+      this.topEmployees = [
+        { name: 'Sem dados', position: 'N/A', image: '/img/default-employee.jpg' }
+      ];
+      this.occurrenceData = {
+        labels: ['Sem dados'],
+        values: [0]
+      };
+      this.frequencyData = {
+        labels: ['Sem dados'],
+        values: [0],
+        colors: ['#79B4A9']
+      };
+      this.historyData.values = [0, 0, 0, 0, 0, 0, 0];
+    },
+    
     renderCharts() {
-      // Gráfico de Feedback (Barras verticais)
+      // Gráfico de Feedback (mantido como estava - dados simulados)
       new Chart(this.$refs.feedbackChart, {
         type: 'bar',
         data: {
@@ -117,7 +248,7 @@ export default {
         }
       });
 
-      // Gráfico de Ocorrências (Barras horizontais)
+      // Gráfico de Ocorrências (Barras horizontais) - usando dados reais
       new Chart(this.$refs.locationChart, {
         type: 'bar',
         data: {
@@ -135,14 +266,14 @@ export default {
         }
       });
 
-      // Gráfico de Frequência (Doughnut)
+      // Gráfico de Frequência (Doughnut) - usando dados reais
       new Chart(this.$refs.frequencyChart, {
         type: 'doughnut',
         data: {
           labels: this.frequencyData.labels,
           datasets: [{
             data: this.frequencyData.values,
-            backgroundColor: this.frequencyData.colors
+            backgroundColor: this.frequencyData.colors.slice(0, this.frequencyData.labels.length)
           }]
         },
         options: {
@@ -152,7 +283,7 @@ export default {
         }
       });
 
-      // Gráfico Histórico (Line)
+      // Gráfico Histórico (Line) - usando dados processados
       new Chart(this.$refs.historyChart, {
         type: 'line',
         data: {
@@ -237,6 +368,7 @@ h2 {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 10px;
+  background-color: #f0f0f0; /* Cor de fundo para imagens que não carregam */
 }
 
 .chart-container {
