@@ -28,9 +28,8 @@
           <h2 class="section-title">Localização</h2>
           <div class="info-with-icon">
             <MapPin class="icon" />
-            <p class="section-text">
-              {{ ocorrencia?.zona }},
-              {{ ocorrencia?.andar }}
+          <p class="section-text">
+              {{ ocorrencia?.localizacao }}
             </p>
           </div>
         </div>
@@ -52,14 +51,15 @@
         <div class="info-section">
           <h2 class="section-title">Materiais</h2>
           <div class="materials-list">
-            <div v-if="ocorrencia?.materiais && ocorrencia.materiais.length > 0">
-              <div v-for="material in ocorrencia.materiais" :key="material.nome" class="material-item">
-                <span class="material-name">{{ material.nome }}</span>
-                <span class="material-quantity">({{ material.quantidade }})</span>
-              </div>
+          <div v-if="ocorrencia?.materiais && ocorrencia.materiais.length > 0">
+            <div v-for="material in ocorrencia.materiais" :key="material.nomeMaterial" class="material-item">
+              <span class="material-name">
+                {{ material.nomeMaterial }} <span class="material-quantity">({{ material.quantidade }})</span>
+              </span>
             </div>
-            <p v-else class="no-materials">Nenhum material registrado</p>
           </div>
+          <p v-else class="no-materials">Nenhum material registrado</p>
+        </div>
         </div>
 
         <!-- Description -->
@@ -130,8 +130,7 @@ onMounted(() => {
         id: found.id,
         tipo: found.tipoOcorrencia || found.tipo,
         data: found.data,
-        zona: found.tipoLocalizacoes?.split(' - ')[0] || found.zona,
-        andar: found.tipoLocalizacoes?.split(' - ')[1] || found.andar,
+        localizacao: found.localizacao || found.tipoLocalizacoes || found.zona || '', // usa sempre localizacao
         email: found.nomeFuncionario || found.email,
         materiais: found.materiais || [],
         descricao: found.descricao,

@@ -182,10 +182,10 @@
     function criarOcorrencia() {
       const stockMateriais = JSON.parse(localStorage.getItem('materiais') || '[]')
           for (const mat of materiaisEscolhidos.value) {
-            const matObj = stockMateriais.find(m => m.nomeMaterial === mat.nome)
+            const matObj = stockMateriais.find(m => m.nomeMaterial === mat.nomeMaterial)
             const maxQtd = matObj ? matObj.quantidade : 0
             if (mat.quantidade > maxQtd) {
-              alert(`Não pode pedir mais ${mat.nome} do que o stock disponível!`)
+              alert(`Não pode pedir mais ${mat.nomeMaterial} do que o stock disponível!`)
               return
             }
           }

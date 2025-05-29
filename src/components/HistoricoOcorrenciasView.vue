@@ -19,7 +19,7 @@
         <tr v-for="ocorrencia in ocorrencias" :key="ocorrencia.id">
           <td>{{ ocorrencia.tipoOcorrencia }}</td>
           <td>{{ ocorrencia.nomeFuncionario }}</td>
-          <td>{{ ocorrencia.tipoLocalizacoes }}</td>
+          <td>{{ ocorrencia.localizacao }}</td>
           <td>{{ ocorrencia.estado || 'Em Análise' }}</td>
           <td>
             <button @click="verDetalhes(ocorrencia.id)" class="btn-detalhes">
@@ -47,9 +47,9 @@ onMounted(() => {
   // Transform data to match new structure if needed
   ocorrencias.value = savedOcorrencias.map(o => ({
     id: o.id,
-    tipoOcorrencia: o.tipo,
+    tipoOcorrencia: o.tipoOcorrencia || o.tipo || 'Não especificado',
     nomeFuncionario: o.nomeFuncionario || 'Não especificado',
-    tipoLocalizacoes: o.tipoLocalizacoes || `${o.zona} - ${o.andar}`,
+    localizacao: o.localizacao || o.tipoLocalizacoes || `${o.zona} - ${o.andar}` || 'Não especificado',
     estado: o.estado || 'Em Análise'
   }))
   console.log('Ocorrências carregadas:', ocorrencias.value)
@@ -136,6 +136,7 @@ const verDetalhes = (id) => {
 
 .tabela th,
 .tabela td {
+  color: #12203c !important;
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid #ccc;
