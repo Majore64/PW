@@ -349,10 +349,7 @@
       alocarFuncionario(funcionario) {
         this.funcionarioAlocado = funcionario;
       },
-      validarOcorrencia() {
-        // Lógica para validar a ocorrência
-        console.log('Ocorrência validada:', this.ocorrencia);
-      },
+
       eliminarOcorrencia() {
           // Remove a ocorrência do localStorage
           const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias')) || [];
