@@ -85,11 +85,9 @@
 
       <div class="status-section">
         <label>Estado</label>
-        <select v-model="ocorrencia.estado">
-          <option value="Por validar">Por validar</option>
-          <option value="Pendente">Pendente</option>
-          <option value="Resolvido">Resolvido</option>
-        </select>
+        <span class="estado-text" :class="{'validado': ocorrencia.estado === 'Validado'}">
+          {{ ocorrencia.estado }}
+        </span>
       </div>
     </div>
   
@@ -198,18 +196,39 @@
       <!-- Rodapé -->
       <div class="ocorrencia-footer">
         <div class="action-buttons">
-          <button class="validar-btn" @click="validarOcorrencia" v-if="abaAtiva === 'detalhes'" :disabled="!formularioValido || ocorrencia.estado === 'Validado'">Validar</button>
+          <button
+            class="validar-btn"
+            @click="validarOuAtualizarOcorrencia"
+            v-if="abaAtiva === 'detalhes'"
+            :disabled="ocorrencia.estado === 'Validado' ? false : !formularioValido"
+          >
+            {{ ocorrencia.estado === 'Validado' ? 'Atualizar' : 'Validar' }}
+          </button>
           <button class="eliminar-btn" @click="eliminarOcorrencia">Eliminar</button>
           <button class="guardar-btn" @click="guardarAlocacao" v-if="abaAtiva === 'alocacao'">Guardar</button>
         </div>
       </div>
     </div>
+
+    <OcorrenciaPerfilPopup
+      v-if="mostrarPopupEdicao"
+      :ocorrencia="ocorrencia"
+      :funcionarios="funcionarios"
+      @fechar="mostrarPopupEdicao = false"
+      @atualizado="atualizarOcorrencia"
+    />
+
   </template>
   
-  <script>
+<script>
+  import OcorrenciaPerfilPopup from './OcorrenciaPerfilPopup.vue';
+
   export default {
     name: 'DetalhesOcorrencia',
     props: ['id'],
+      components: {
+      OcorrenciaPerfilPopup
+    },
     data() {
       return {
         abaAtiva: 'detalhes', // 'detalhes' ou 'alocacao'
@@ -229,7 +248,8 @@
         },
         funcionarios: [],
         filtroFuncao: '',
-        filtroArea: ''
+        filtroArea: '',
+        mostrarPopupEdicao: false
       };
     },
 
@@ -377,7 +397,7 @@
         });
       },
 
-      async validarOcorrencia() {
+      validarOcorrencia() {
         if (!this.ocorrencia.funcionarioAlocado) {
           alert('Por favor, selecione um funcionário para alocar');
           return;
@@ -399,7 +419,7 @@
             localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
             
             // 2. Atualizar os materiais no localStorage
-            await this.atualizarStockMateriais(ocorrencias[ocorrenciaIndex].materiais);
+            this.atualizarStockMateriais(ocorrencias[ocorrenciaIndex].materiais);
             
             // 3. Redirecionar para a página de ocorrências
             this.$router.push({ name: 'Ocorrencias' });
@@ -410,7 +430,7 @@
         }
       },
       
-      async atualizarStockMateriais(materiaisOcorrencia) {
+      atualizarStockMateriais(materiaisOcorrencia) {
         if (!materiaisOcorrencia || materiaisOcorrencia.length === 0) return;
 
         // Obter os materiais atuais do localStorage
@@ -436,7 +456,56 @@
         // Atualizar o localStorage
         localStorage.setItem('materiais', JSON.stringify(materiais));
       },
+      validarOuAtualizarOcorrencia() {
+        if (this.ocorrencia.estado === 'Validado') {
+          this.mostrarPopupEdicao = true; // Abre o popup se já estiver validado
+          return;
+        }
+
+        if (!this.ocorrencia.funcionarioAlocado) {
+          alert('Por favor, selecione um funcionário para alocar');
+          return;
+        }
+
+        // Valida a ocorrência
+        this.ocorrencia.estado = 'Validado';
+        
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+        const ocorrenciaIndex = ocorrencias.findIndex(oc => oc.id === parseInt(this.id));
+        
+        if (ocorrenciaIndex !== -1) {
+          ocorrencias[ocorrenciaIndex] = {
+            ...ocorrencias[ocorrenciaIndex],
+            alocadoA: this.ocorrencia.funcionarioAlocado.nome,
+            validado: true
+          };
+          localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
+        }
+      },
+    
+    atualizarOcorrencia(ocorrenciaAtualizada) {
+      // Atualiza os dados locais
+      this.ocorrencia = { ...ocorrenciaAtualizada };
+      
+      // Atualiza no localStorage
+      const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+      const index = ocorrencias.findIndex(oc => oc.id === this.ocorrencia.numero);
+      
+      if (index !== -1) {
+        ocorrencias[index] = {
+          ...ocorrencias[index],
+          localizacao: ocorrenciaAtualizada.localizacao,
+          descricao: ocorrenciaAtualizada.descricao,
+          tipoOcorrencia: ocorrenciaAtualizada.tipo,
+          alocadoA: ocorrenciaAtualizada.funcionarioAlocado?.nome || ocorrenciaAtualizada.funcionarioAlocado,
+          validado: ocorrenciaAtualizada.estado === 'Validado',
+          resolvido: ocorrenciaAtualizada.estado === 'Resolvido'
+        };
+        
+        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
+      }
     }
+  }
   };
   </script>
   
@@ -765,5 +834,10 @@
   
   .material-icons {
     font-size: 18px;
+  }
+
+  .estado-text.validado {
+    color: #4CAF50;
+    font-weight: bold;
   }
   </style>
