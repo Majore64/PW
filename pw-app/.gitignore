@@ -1,21 +1,27 @@
+# Sistema
 .DS_Store
-node_modules
-/dist
 
+# Node
+node_modules/
 
-# local env files
+# Pastas de build
+/dist/
+
+# Arquivos de ambiente local
 .env.local
 .env.*.local
 
-# Log files
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Editor directories and files
-.idea
-.vscode
+# Diretórios de editor
+.idea/
+.vscode/
+
+# Arquivos temporários e de IDE
 *.suo
 *.ntvs*
 *.njsproj
