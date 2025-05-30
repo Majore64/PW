@@ -10,6 +10,9 @@
       <!-- Textos -->
       <div class="text-nowrap overflow-hidden">
         <h5 class="text-white fs-5 fw-normal m-0 text-truncate">{{ formattedType }}</h5>
+        <div class="tipo-ocorrencia-card" style="font-weight: bold; font-size: 1.1rem; margin-top: 8px;">
+          {{ occurrence.tipoOcorrencia }}
+        </div>
         <h5 class="text-white fs-6 fw-light m-0">{{ occurrence.location }}</h5>
       </div>
     </div>

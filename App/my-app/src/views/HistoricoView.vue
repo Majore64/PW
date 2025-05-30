@@ -58,6 +58,8 @@
           :key="occurrence.id"
           class="occurrence-wrapper"
           :style="getCardStyle(occurrence.resolvido)"
+          @click="router.push(`/visualizar/${occurrence.id}`)"
+          style="cursor: pointer;"
         >
           <OccurrenceCard :occurrence="occurrence" />
           <div class="status-badge">
@@ -86,19 +88,22 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useOcorrenciasStore } from '@/stores/ocorrencias';
 import OccurrenceCard from '@/components/OccurrenceCard.vue';
 
 const router = useRouter();
-const store = useOcorrenciasStore();
 const user = JSON.parse(localStorage.getItem('user'));
+const funcionarios = JSON.parse(localStorage.getItem('funcionarios') || '[]');
 const isAuthenticated = ref(!!user);
 const ocorrencias = ref([]);
-
+let funcionarioId = null;
+if (user && user.email) {
+  const funcionario = funcionarios.find(f => f.email === user.email);
+  funcionarioId = funcionario ? funcionario.id : null;
+  console.log('Funcionário encontrado:', funcionario);
+}
 onMounted(() => {
   ocorrencias.value = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
   isAuthenticated.value = !!user;
@@ -114,9 +119,9 @@ const showAll = ref(false);
 const initialItemCount = 4;
 
 const userOccurrences = computed(() => {
-  if (!user) return [];
+  if (!funcionarioId) return [];
   const minhas = ocorrencias.value.filter(
-    o => Number(o.createdBy ?? o.numeroFuncionario) === Number(user.id)
+    o => String(o.numeroFuncionario) === String(funcionarioId)
   );
   const pending = minhas.filter(o => !o.resolvido);
   const resolved = minhas.filter(o => o.resolvido);
@@ -125,16 +130,20 @@ const userOccurrences = computed(() => {
     ? new Date(b.createdAt || b.data) - new Date(a.createdAt || a.data)
     : new Date(a.createdAt || a.data) - new Date(b.createdAt || b.data);
 
-  return [
+  const resultado = [
     ...pending.sort(sortFn),
     ...resolved.sort(sortFn)
   ];
+  console.log('Ocorrências ordenadas:', resultado);
+  return minhas;
 });
 
 const displayedOccurrences = computed(() => {
-  return showAll.value 
+  const result = showAll.value 
     ? userOccurrences.value 
     : userOccurrences.value.slice(0, initialItemCount);
+  console.log('Ocorrências visíveis:', result);
+  return result;
 });
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'recentes' ? 'antigos' : 'recentes';
@@ -162,7 +171,11 @@ const getCardStyle = (resolvido) => {
   overflow: hidden;
   transition: all 0.3s ease;
 }
-
+.tipo-ocorrencia {
+  color: #00796B;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
 .status-badge {
   position: absolute;
   top: 10px;

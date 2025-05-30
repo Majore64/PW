@@ -11,12 +11,6 @@ export const useOccurrencesStore = defineStore("ocorrencias", {
       currentUser: currentUser,
       currentUserId: userId, 
       completedCount: JSON.parse(localStorage.getItem(`completedCount_${userId}`)) || 0,
-      equipmentSuggestions: {
-        local_sujo: ["Esfregona", "Vassoura", "Luvas", "Aspirador", "Desinfetante"],
-        equipamento_danificado: ["Ferramentas", "Peças de reposição", "Multímetro"],
-        falta_material: ["Material médico", "Medicamentos", "Equipamento cirúrgico", "Luvas estéreis"],
-        material_fora_lugar: ["Carrinho de transporte", "Etiquetas", "Sistema de armazenamento"],
-      },
     }
   },
   actions: {
