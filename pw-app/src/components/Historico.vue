@@ -55,9 +55,8 @@
                   @click="verPerfil(ocorrencia)" 
                   class="action-btn" 
                   :class="{ 'resolvido': ocorrencia.resolvido }"
-                  :disabled="ocorrencia.resolvido"
                   >
-                  <span class="validate-button">{{ ocorrencia.resolvido ? 'resolvido' : 'por resolver' }}</span>
+                  <span class="validate-button">{{ ocorrencia.resolvido ? 'detalhes' : 'por resolver' }}</span>
                 </button>
               </td>
             </tr>
@@ -401,10 +400,10 @@ border-color: #03B5AA;
 }
 
 .action-btn.resolvido {
-  border-color: #03B5AA;
+  border-color: #304D6D;
 }
 
 .action-btn.resolvido .validate-button {
-  color: #03B5AA;
+  color: #304D6D;
 }
 </style>

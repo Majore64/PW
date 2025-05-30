@@ -186,7 +186,7 @@ export default {
 
       // Aplica filtro de alocação
       if (this.filtroAlocacao === 'naoAlocadas') {
-        filtradas = filtradas.filter(o => o.alocadoA === "-");
+        filtradas = filtradas.filter(o => o.alocadoA === "-" && o.alocadoA == "");
       } else if (this.filtroAlocacao === 'alocadas') {
         filtradas = filtradas.filter(o => o.alocadoA !== "-" && o.alocadoA !== "");
       }
@@ -217,17 +217,17 @@ export default {
     },
 
     ocorrenciasNaoValidadas(){
-      return this.ocorrencias.filter(o => !o.validado).length;
+      return this.ocorrencias.filter(o => !o.validado && !o.resolvido).length;
     },
 
     ocorrenciasValidadas(){
-      return this.ocorrencias.filter(o => o.validado).length;
+      return this.ocorrencias.filter(o => o.validado && !o.resolvido).length;
     },
     ocorrenciasNaoAtribuidas() {
-      return this.ocorrencias.filter(o => o.alocadoA === "-").length;
+      return this.ocorrencias.filter(o => o.alocadoA === "-" && !o.resolvido).length;
     },
     ocorrenciasAtribuidas() {
-      return this.ocorrencias.filter(o => o.alocadoA !== "-").length;
+      return this.ocorrencias.filter(o => o.alocadoA !== "-" && !o.resolvido).length;
     }
   },
 
@@ -261,9 +261,11 @@ export default {
   },
 
   carregarOcorrencias() {
-    const ocorrenciasRaw = JSON.parse(localStorage.getItem('ocorrencias')) || [];
-
-    this.ocorrencias = ocorrenciasRaw.map((oc) => ({
+  const ocorrenciasRaw = JSON.parse(localStorage.getItem('ocorrencias')) || [];
+  
+  this.ocorrencias = ocorrenciasRaw
+    .filter(oc => !oc.resolvido) 
+    .map((oc) => ({
       id: oc.id,
       alertaPor: oc.nomeFuncionario,
       tipo: oc.tipoOcorrencia,
@@ -272,7 +274,7 @@ export default {
       alocadoA: oc.alocadoA,
       validado: oc.validado 
     }));
-  },
+},
 
   carregarTabsOcorrencia() {
     // Busca os tipos de ocorrência do localStorage

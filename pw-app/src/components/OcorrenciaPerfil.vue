@@ -19,193 +19,119 @@
           :class="{ active: abaAtiva === 'alocacao' }"
           @click="abaAtiva = 'alocacao'"
         >
-          Alocação
+          Prova da Ocorrencia
+        </button>
+        <button 
+          v-if="ocorrencia.resolvido"
+          :class="{ active: abaAtiva === 'provaFinal' }"
+          @click="abaAtiva = 'provaFinal'"
+        >
+          Prova Final
         </button>
       </div>
   
       <!-- Conteúdo dos Detalhes -->
       <div class="detalhes-content" v-if="abaAtiva === 'detalhes'">
-      <div class="info-section">
-        <div class="info-grid">
-          <div class="info-item">
-            <label>Número</label>
-            <p>{{ ocorrencia.numero }}</p>
-          </div>
-          <div class="info-item">
-            <label>Localização</label>
-            <p>{{ ocorrencia.localizacao }}</p>
-          </div>
-          <div class="info-item">
-            <label>Descrição</label>
-            <p>{{ ocorrencia.descricao }}</p>
-          </div>
-          <div class="info-item">
-            <label>Tipo de Ocorrência</label>
-            <p>{{ ocorrencia.tipo }}</p>
-          </div>
-          <div class="info-item">
-            <label>Data</label>
-            <p>{{ ocorrencia.data }}</p>
-          </div>
-          <div class="info-item">
-            <label>Funcionário que alertou</label>
-            <p>{{ ocorrencia.alertaPor }}</p>
-          </div>
-          <div class="info-item" v-if="ocorrencia.materiais && ocorrencia.materiais.length > 0">
-            <label>Materiais utilizados</label>
-            <div class="materiais-grid">
-              <div v-for="(material, index) in ocorrencia.materiais" :key="index" class="material-item">
-                <div class="material-nome">{{ material.nome }}</div>
-                <div class="material-quantidade">Quantidade: {{ material.quantidade }}</div>
+        <div class="info-section">
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Número</label>
+              <p>{{ ocorrencia.numero }}</p>
+            </div>
+            <div class="info-item">
+              <label>Localização</label>
+              <p>{{ ocorrencia.localizacao }}</p>
+            </div>
+            <div class="info-item">
+              <label>Descrição</label>
+              <p>{{ ocorrencia.descricao }}</p>
+            </div>
+            <div class="info-item">
+              <label>Tipo de Ocorrência</label>
+              <p>{{ ocorrencia.tipo }}</p>
+            </div>
+            <div class="info-item">
+              <label>Data</label>
+              <p>{{ ocorrencia.data }}</p>
+            </div>
+            <div class="info-item">
+              <label>Funcionário que alertou</label>
+              <p>{{ ocorrencia.alertaPor }}</p>
+            </div>
+            <div class="info-item" v-if="ocorrencia.materiais && ocorrencia.materiais.length > 0">
+              <label>Materiais utilizados</label>
+              <div class="materiais-grid">
+                <div v-for="(material, index) in ocorrencia.materiais" :key="index" class="material-item">
+                  <div class="material-nome">{{ material.nome }}</div>
+                  <div class="material-quantidade">Quantidade: {{ material.quantidade }}</div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="info-item">
-            <label>Funcionário Alocado</label>
-            <div v-if="ocorrencia.estado === 'Validado' && ocorrencia.funcionarioAlocado">
-              <p>{{ ocorrencia.funcionarioAlocado.nome || ocorrencia.funcionarioAlocado }}</p>
-            </div>
-            <select 
-              v-else
-              v-model="ocorrencia.funcionarioAlocado" 
-              class="funcionario-select"
-            >
-              <option value="">Selecione um funcionário</option>
-              <option 
-                v-for="funcionario in funcionarios" 
-                :key="funcionario.numero"
-                :value="funcionario"
+            <div class="info-item">
+              <label>Funcionário Alocado</label>
+              <div v-if="ocorrencia.estado === 'Validado' && ocorrencia.funcionarioAlocado">
+                <p>{{ ocorrencia.funcionarioAlocado.nome || ocorrencia.funcionarioAlocado }}</p>
+              </div>
+              <select 
+                v-else
+                v-model="ocorrencia.funcionarioAlocado" 
+                class="funcionario-select"
               >
-                {{ funcionario.nome }} - {{ funcionario.funcao }}
-              </option>
-            </select>
+                <option value="">Selecione um funcionário</option>
+                <option 
+                  v-for="funcionario in funcionarios" 
+                  :key="funcionario.numero"
+                  :value="funcionario"
+                >
+                  {{ funcionario.nome }} - {{ funcionario.funcao }}
+                </option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="status-section">
-        <label>Estado</label>
-        <span class="estado-text" :class="{'validado': ocorrencia.estado === 'Validado'}">
-          {{ ocorrencia.estado }}
-        </span>
-      </div>
-    </div>
-  
-      <!-- Conteúdo da Alocação -->
-      <div class="alocacao-content" v-if="abaAtiva === 'alocacao'">
-        <div class="filtros-section">
-          <div class="filtro-item">
-            <label>Função</label>
-            <select v-model="filtroFuncao">
-              <option value="">Todas</option>
-              <option v-for="funcao in funcoes" :value="funcao" :key="funcao">{{ funcao }}</option>
-            </select>
-          </div>
-          <div class="filtro-item">
-            <label>Área</label>
-            <select v-model="filtroArea">
-              <option value="">Todas</option>
-              <option v-for="area in areas" :value="area" :key="area">{{ area }}</option>
-            </select>
-          </div>
-        </div>
-  
-        <div class="funcionarios-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Número</th>
-                <th>Nome</th>
-                <th>Função</th>
-                <th>Área Alocada</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="funcionario in funcionariosFiltrados" :key="funcionario.numero">
-                <td>{{ funcionario.numero }}</td>
-                <td>{{ funcionario.nome }}</td>
-                <td>{{ funcionario.funcao }}</td>
-                <td>{{ funcionario.area }}</td>
-                <td>
-                  <button 
-                    @click="alocarFuncionario(funcionario)"
-                    :class="{ 'alocado': funcionarioAlocado && funcionarioAlocado.numero === funcionario.numero }"
-                  >
-                    {{ funcionarioAlocado && funcionarioAlocado.numero === funcionario.numero ? 'Alocado' : 'Alocar' }}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="pagination">
-          <button>&lt; Previous</button>
-          <button v-for="n in 4" :key="n" :class="{ active: n === 1 }">{{ n }}</button>
-          <button>Next &gt;</button>
-        </div>
-
-        <div class="alocacao-campos">
-        <div class="campo-item">
-          <label>Localização *</label>
-          <input type="text" v-model="localizacaoSelecionada" readonly>
-        </div>
-        
-        <div class="campo-item">
-          <label>Funcionário alocado *</label>
-          <div class="funcionario-alocado-info" v-if="funcionarioAlocado">
-            {{ funcionarioAlocado.nome }}, {{ funcionarioAlocado.numero }}
-          </div>
-          <select v-else v-model="funcionarioSelecionado" class="funcionario-select">
-            <option value="">Selecione um funcionário</option>
-            <option 
-              v-for="funcionario in funcionariosFiltrados" 
-              :key="funcionario.numero"
-              :value="funcionario"
-            >
-              {{ funcionario.nome }} ({{ funcionario.numero }})
-            </option>
-          </select>
-        </div>
-        
-        <div class="campo-item">
-          <label>Tipo de Ocorrência *</label>
-          <select v-model="tipoOcorrencia" class="tipo-select">
-            <option value="Falta de material">Falta de material</option>
-            <option value="Material danificado">Material danificado</option>
-            <option value="Limpeza">Limpeza</option>
-            <option value="Outro">Outro</option>
-          </select>
-        </div>
-        
-        <div class="campo-item">
+        <div class="status-section">
           <label>Estado</label>
-          <select v-model="estadoOcorrencia" class="estado-select">
-            <option value="Pendente">Pendente</option>
-            <option value="Por validar">Por validar</option>
-            <option value="Resolvido">Resolvido</option>
-          </select>
+          <span class="estado-text" :class="{'validado': ocorrencia.estado === 'Validado'}">
+            {{ ocorrencia.estado }}
+          </span>
+        </div>
+
+        <!-- Rodapé - Botões apenas na aba de detalhes -->
+        <div class="ocorrencia-footer">
+          <div class="action-buttons">
+            <button
+              class="validar-btn"
+              @click="validarOuAtualizarOcorrencia"
+              :disabled="ocorrencia.estado === 'Validado' ? false : !formularioValido"
+            >
+              {{ ocorrencia.estado === 'Validado' ? 'Atualizar' : 'Validar' }}
+            </button>
+            <button class="eliminar-btn" @click="eliminarOcorrencia">Eliminar</button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Conteúdo da Prova da Ocorrencia -->
+      <div class="alocacao-content" v-if="abaAtiva === 'alocacao'">
+        <div class="prova-container" v-if="ocorrencia.prova">
+          <img :src="ocorrencia.prova" alt="Prova da ocorrência" class="prova-imagem">
+        </div>
+        <div v-else class="sem-prova">
+          Nenhuma prova disponível para esta ocorrência
         </div>
       </div>
 
-  
-        
-      </div>
-  
-      <!-- Rodapé -->
-      <div class="ocorrencia-footer">
-        <div class="action-buttons">
-          <button
-            class="validar-btn"
-            @click="validarOuAtualizarOcorrencia"
-            v-if="abaAtiva === 'detalhes'"
-            :disabled="ocorrencia.estado === 'Validado' ? false : !formularioValido"
-          >
-            {{ ocorrencia.estado === 'Validado' ? 'Atualizar' : 'Validar' }}
-          </button>
-          <button class="eliminar-btn" @click="eliminarOcorrencia">Eliminar</button>
-          <button class="guardar-btn" @click="guardarAlocacao" v-if="abaAtiva === 'alocacao'">Guardar</button>
+      <!-- Conteúdo da Prova Final -->
+      <div class="prova-final-content" v-if="abaAtiva === 'provaFinal' && ocorrencia.resolvido">
+        <div class="prova-container" v-if="ocorrencia.provaF">
+          <img :src="ocorrencia.provaF" alt="Prova final da ocorrência" class="prova-imagem">
+        </div>
+        <div v-else class="sem-prova">
+          Nenhuma prova final disponível
+        </div>
+        <div class="descricao-prova" v-if="ocorrencia.descricao">
+          <h3>Descrição:</h3>
+          <p>{{ ocorrencia.descricao }}</p>
         </div>
       </div>
     </div>
@@ -251,6 +177,14 @@
         filtroArea: '',
         mostrarPopupEdicao: false
       };
+    },
+    watch: {
+      // Garante que não fique na aba provaFinal se a ocorrência não estiver resolvida
+      'ocorrencia.resolvido'(novoValor) {
+        if (!novoValor && this.abaAtiva === 'provaFinal') {
+          this.abaAtiva = 'detalhes';
+        }
+      }
     },
 
     created() {
@@ -319,7 +253,10 @@
             materiais: ocorrenciaEncontrada.materiais || [],
             alertaPor: ocorrenciaEncontrada.nomeFuncionario,
             estado: ocorrenciaEncontrada.validado ? 'Validado' : 'Por validar',
-            funcionarioAlocado: temAlocado ? ocorrenciaEncontrada.alocadoA : null
+            funcionarioAlocado: temAlocado ? ocorrenciaEncontrada.alocadoA : null,
+            prova: ocorrenciaEncontrada.prova || null,
+            provaF: ocorrenciaEncontrada.provaF || null,
+            resolvido: ocorrenciaEncontrada.resolvido || false
           };
           
           // Se estiver validado e tiver alocado, tenta encontrar o objeto completo do funcionário
@@ -498,7 +435,7 @@
           descricao: ocorrenciaAtualizada.descricao,
           tipoOcorrencia: ocorrenciaAtualizada.tipo,
           alocadoA: ocorrenciaAtualizada.funcionarioAlocado?.nome || ocorrenciaAtualizada.funcionarioAlocado,
-          validado: ocorrenciaAtualizada.estado === 'Validado',
+          validado: ocorrenciaAtualizada.estado === 'Validado' || ocorrenciaAtualizada.estado === 'Resolvido',
           resolvido: ocorrenciaAtualizada.estado === 'Resolvido'
         };
         
@@ -662,109 +599,11 @@
   margin-top: 5px;
 }
   
-  /* Filtros */
-  .filtros-section {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .filtro-item {
-    flex: 1;
-  }
-  
-  .filtro-item label {
-    display: block;
-    font-size: 0.8rem;
-    color: #666;
-    margin-bottom: 5px;
-  }
-  
-  .filtro-item select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  /* Tabela */
-  .funcionarios-table {
-    overflow-x: auto;
-    margin: 20px 0;
-  }
-  
-  .funcionarios-table table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .funcionarios-table th,
-  .funcionarios-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .funcionarios-table th {
-    background-color: #f5f5f5;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .funcionarios-table button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    background-color: #03B5AA;
-    color: white;
-    cursor: pointer;
-  }
-  
-  .funcionarios-table button.alocado {
-    background-color: #4CAF50;
-  }
-  
-  .funcionarios-table button:hover:not(.alocado) {
-    background-color: #029e94;
-  }
-
-  .alocacao-campos {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-}
-
 .campo-item label {
   display: block;
   font-size: 0.8rem;
   color: #666;
   margin-bottom: 5px;
-}
-
-.campo-item input,
-.campo-item select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.funcionario-alocado-info {
-  padding: 8px;
-  background-color: #e8f5e9;
-  border-radius: 4px;
-  color: #2e7d32;
-  font-weight: bold;
-}
-
-.alocacao-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 15px 0;
 }
 
 .guardar-btn {
@@ -780,28 +619,6 @@
 .guardar-btn:hover {
   background-color: #029e94;
 }
-  
-  /* Paginação */
-  .pagination {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-    margin: 20px 0;
-  }
-  
-  .pagination button {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    background: white;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-  
-  .pagination button.active {
-    background: #03B5AA;
-    color: white;
-    border-color: #03B5AA;
-  }
   
   /* Rodapé */
   .ocorrencia-footer {
@@ -840,4 +657,46 @@
     color: #4CAF50;
     font-weight: bold;
   }
-  </style>
+
+  /* Estilos para a seção de prova */
+.prova-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.prova-imagem {
+  max-width: 100%;
+  max-height: 500px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sem-prova {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+}
+
+.prova-final-content {
+  padding: 20px;
+}
+
+.descricao-prova {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.descricao-prova h3 {
+  margin-top: 0;
+  color: #03B5AA;
+}
+
+.descricao-prova p {
+  margin-bottom: 0;
+}
+</style>

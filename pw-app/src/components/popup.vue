@@ -50,12 +50,12 @@
 
             <div class="form-section">
               <h3>Descrição</h3>
-              <input 
+              <input
                 v-model="form.descricao" 
                 class="form-input-descricao" 
                 placeholder="Poça de água no corredor"
                 rows="3"
-              ></input>
+              >
 
               <h3>Data</h3>
               <input v-model="form.data" type="text" class="form-input" placeholder="24/07/2024" />
@@ -194,7 +194,9 @@ export default {
         materiais: materiaisValidos,
         alocadoA: "-",
         validado: false,
-        resolvido: true
+        resolvido: false,
+        prova: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+        provaF:"https://images.unsplash.com/photo-1516117172878-fd2c41f4a759"
       };
 
       // Adicionar nova ocorrência
