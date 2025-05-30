@@ -93,7 +93,7 @@ export default {
     loadDataFromLocalStorage() {
       try {
         // Carregar funcionários
-        const funcionarios = JSON.parse(localStorage.getItem('filtroAtivotodosfuncionarios') || '[]');
+        const funcionarios = JSON.parse(localStorage.getItem('funcionarios') || '[]');
         
         // Carregar ocorrências
         const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
@@ -120,12 +120,17 @@ export default {
       // Contar alocações por funcionário (quem foi mais alocado)
       const funcionarioCount = {};
       
+      console.log('Funcionários disponíveis:', funcionarios);
+      console.log('Ocorrências:', ocorrencias);
+      
       ocorrencias.forEach(ocorrencia => {
         const nomeAlocado = ocorrencia.alocadoA;
         if (nomeAlocado) {
           funcionarioCount[nomeAlocado] = (funcionarioCount[nomeAlocado] || 0) + 1;
         }
       });
+      
+      console.log('Contagem de alocações:', funcionarioCount);
       
       // Ordenar funcionários por número de vezes que foram alocados
       const topFuncionarios = Object.entries(funcionarioCount)
@@ -134,12 +139,15 @@ export default {
       
       this.topEmployees = topFuncionarios.map(([nome, count]) => {
         const funcionario = funcionarios.find(f => f.nome === nome);
+        console.log(`Procurando funcionário: ${nome}`, funcionario);
         return {
           name: nome,
-          position: funcionario ? funcionario.funcao : 'Funcionário',
+          position: funcionario ? funcionario.funcao : 'Função não encontrada',
           count: count
         };
       });
+      
+      console.log('Top employees processados:', this.topEmployees);
       
       // Se não houver alocações suficientes, preencher com funcionários padrão
       while (this.topEmployees.length < 3 && funcionarios.length > this.topEmployees.length) {
@@ -152,6 +160,8 @@ export default {
           });
         }
       }
+      
+      console.log('Top employees final:', this.topEmployees);
     },
     
     processLocationOccurrences(ocorrencias) {
