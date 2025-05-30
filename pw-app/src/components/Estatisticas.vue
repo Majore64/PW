@@ -6,11 +6,14 @@
       <!-- Funcionários -->
       <div class="stats-section employees-section">
         <h2>Funcionários que mais contribuíram</h2>
-        <div class="employees-grid">
-          <div v-for="(employee, index) in topEmployees" :key="index" class="employee-card">
-            <img :src="employee.image" :alt="employee.name" class="employee-image">
-            <h3>{{ employee.name }}</h3>
-            <p>{{ employee.position }}</p>
+        <div class="employees-ranking">
+          <div v-for="(employee, index) in topEmployees" :key="index" class="employee-rank">
+            <div class="rank-number">{{ index + 1 }}º</div>
+            <div class="employee-info">
+              <h3>{{ employee.name }}</h3>
+              <p>{{ employee.position }}</p>
+              <span class="contribution-count">{{ employee.count }} alocações</span>
+            </div>
           </div>
         </div>
       </div>
@@ -74,7 +77,7 @@ export default {
         colors: ['#79B4A9', '#304D6D', '#03B5AA']
       },
       historyData: {
-        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
+        labels: [],
         values: []
       }
     };
@@ -104,7 +107,7 @@ export default {
         // Processar frequência por tipo de ocorrência
         this.processOccurrenceFrequency(ocorrencias);
         
-        // Processar histórico (simulado baseado nos dados atuais)
+        // Processar histórico baseado nas datas reais das ocorrências
         this.processHistoryData(ocorrencias);
         
       } catch (error) {
@@ -114,36 +117,38 @@ export default {
     },
     
     processTopEmployees(funcionarios, ocorrencias) {
-      // Contar ocorrências por funcionário
+      // Contar alocações por funcionário (quem foi mais alocado)
       const funcionarioCount = {};
       
       ocorrencias.forEach(ocorrencia => {
-        const nome = ocorrencia.nomeFuncionario;
-        funcionarioCount[nome] = (funcionarioCount[nome] || 0) + 1;
+        const nomeAlocado = ocorrencia.alocadoA;
+        if (nomeAlocado) {
+          funcionarioCount[nomeAlocado] = (funcionarioCount[nomeAlocado] || 0) + 1;
+        }
       });
       
-      // Ordenar funcionários por número de ocorrências reportadas
+      // Ordenar funcionários por número de vezes que foram alocados
       const topFuncionarios = Object.entries(funcionarioCount)
         .sort(([,a], [,b]) => b - a)
         .slice(0, 3);
       
-      this.topEmployees = topFuncionarios.map(([nome]) => {
+      this.topEmployees = topFuncionarios.map(([nome, count]) => {
         const funcionario = funcionarios.find(f => f.nome === nome);
         return {
           name: nome,
           position: funcionario ? funcionario.funcao : 'Funcionário',
-          image: '/img/default-employee.jpg' // Imagem padrão
+          count: count
         };
       });
       
-      // Se não houver ocorrências suficientes, preencher com funcionários padrão
-      while (this.topEmployees.length < 3 && funcionarios.length > 0) {
+      // Se não houver alocações suficientes, preencher com funcionários padrão
+      while (this.topEmployees.length < 3 && funcionarios.length > this.topEmployees.length) {
         const funcionario = funcionarios[this.topEmployees.length];
         if (funcionario && !this.topEmployees.find(emp => emp.name === funcionario.nome)) {
           this.topEmployees.push({
             name: funcionario.nome,
             position: funcionario.funcao,
-            image: '/img/default-employee.jpg'
+            count: 0
           });
         }
       }
@@ -188,26 +193,68 @@ export default {
     },
     
     processHistoryData(ocorrencias) {
-      // Simular dados históricos baseados nas ocorrências atuais
-      // Em uma implementação real, você teria dados com timestamps
-      const totalOcorrencias = ocorrencias.length;
+      // Processar dados históricos baseados nas datas reais das ocorrências
+      const monthCount = {};
+      const currentYear = new Date().getFullYear();
       
-      // Simular crescimento ao longo dos meses
-      this.historyData.values = [
-        Math.max(0, totalOcorrencias - 6),
-        Math.max(0, totalOcorrencias - 5),
-        Math.max(0, totalOcorrencias - 4),
-        Math.max(0, totalOcorrencias - 3),
-        Math.max(0, totalOcorrencias - 2),
-        Math.max(0, totalOcorrencias - 1),
-        totalOcorrencias
-      ];
+      console.log('Processando ocorrências para histórico:', ocorrencias);
+      
+      // Processar cada ocorrência para extrair mês/ano da data
+      ocorrencias.forEach(ocorrencia => {
+        if (ocorrencia.data) {
+          try {
+            // Assumindo que a data está no formato DD/MM/YYYY
+            const dateParts = ocorrencia.data.split('/');
+            let month, year;
+            
+            if (dateParts.length === 3) {
+              // Formato DD/MM/YYYY
+              month = parseInt(dateParts[1]);
+              year = parseInt(dateParts[2]);
+              
+              console.log(`Data processada: ${ocorrencia.data} -> Mês: ${month}, Ano: ${year}`);
+              
+              // Só considerar ocorrências do ano atual
+              if (year === currentYear && month >= 1 && month <= 12) {
+                const monthKey = month;
+                monthCount[monthKey] = (monthCount[monthKey] || 0) + 1;
+                console.log(`Contando para mês ${month}: ${monthCount[monthKey]}`);
+              }
+            }
+          } catch (error) {
+            console.error('Erro ao processar data:', ocorrencia.data, error);
+          }
+        }
+      });
+      
+      console.log('Contagem final por mês:', monthCount);
+      
+      // Criar labels e valores para os meses
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const currentMonth = new Date().getMonth() + 1;
+      
+      // Mostrar desde janeiro até o mês atual
+      this.historyData.labels = monthNames.slice(0, currentMonth);
+      this.historyData.values = [];
+      
+      for (let i = 1; i <= currentMonth; i++) {
+        this.historyData.values.push(monthCount[i] || 0);
+      }
+      
+      console.log('Labels finais:', this.historyData.labels);
+      console.log('Valores finais:', this.historyData.values);
+      
+      // Se não houver dados válidos, mostrar pelo menos os meses até agora
+      if (this.historyData.values.length === 0) {
+        this.historyData.labels = monthNames.slice(0, Math.max(currentMonth, 5));
+        this.historyData.values = new Array(this.historyData.labels.length).fill(0);
+      }
     },
     
     setDefaultData() {
       // Dados padrão caso não existam dados no localStorage
       this.topEmployees = [
-        { name: 'Sem dados', position: 'N/A', image: '/img/default-employee.jpg' }
+        { name: 'Sem dados', position: 'N/A', count: 0 }
       ];
       this.occurrenceData = {
         labels: ['Sem dados'],
@@ -218,7 +265,10 @@ export default {
         values: [0],
         colors: ['#79B4A9']
       };
-      this.historyData.values = [0, 0, 0, 0, 0, 0, 0];
+      this.historyData = {
+        labels: ['Sem dados'],
+        values: [0]
+      };
     },
     
     renderCharts() {
@@ -226,7 +276,7 @@ export default {
       new Chart(this.$refs.feedbackChart, {
         type: 'bar',
         data: {
-          labels: this.historyData.labels,
+          labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
           datasets: [{
             label: 'Avaliação',
             data: [4, 3, 5, 4, 3, 4, 5],
@@ -283,7 +333,7 @@ export default {
         }
       });
 
-      // Gráfico Histórico (Line) - usando dados processados
+      // Gráfico Histórico (Line) - usando dados processados das datas reais
       new Chart(this.$refs.historyChart, {
         type: 'line',
         data: {
@@ -299,7 +349,15 @@ export default {
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
         }
       });
     }
@@ -349,26 +407,50 @@ h2 {
   font-size: 1.3rem;
 }
 
-.employees-grid {
+.employees-ranking {
   display: flex;
-  gap: 20px;
-  justify-content: space-between;
-  width: 100%;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.employee-card {
+.employee-rank {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+.rank-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #03B5AA;
+  min-width: 35px;
   text-align: center;
-  flex: 1;
-  min-width: 0; /* Permite que os cards encolham */
 }
 
-.employee-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 10px;
-  background-color: #f0f0f0; /* Cor de fundo para imagens que não carregam */
+.employee-info {
+  flex: 1;
+}
+
+.employee-info h3 {
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.employee-info p {
+  margin: 0 0 5px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.contribution-count {
+  font-size: 0.8rem;
+  color: #03B5AA;
+  font-weight: 500;
 }
 
 .chart-container {
@@ -383,22 +465,14 @@ h2 {
     flex-direction: column;
   }
   
-  .employees-grid {
-    flex-direction: column;
-    gap: 15px;
+  .employee-rank {
+    padding: 8px;
+    gap: 10px;
   }
   
-  .employee-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    text-align: left;
-  }
-  
-  .employee-image {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 0;
+  .rank-number {
+    font-size: 1.2rem;
+    min-width: 30px;
   }
 
   .chart-container {
