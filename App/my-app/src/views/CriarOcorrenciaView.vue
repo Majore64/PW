@@ -23,13 +23,7 @@
     </div>
 
     <div v-else>
-      <!-- Modal de Equipamentos -->
-      <EquipmentSelector
-        v-if="showEquipmentModal"
-        :occurrenceType="tempOccurrenceType"
-        @confirm="handleEquipmentSelection"
-        @cancel="showEquipmentModal = false"
-      />
+      
 
       <!-- Ícone -->
       <div class="text-center">
@@ -139,7 +133,13 @@
             {{ tipoOcorrencia }}
           </button>
         </div>
-
+        <!-- Modal de Equipamentos -->
+            <EquipmentSelector
+              v-if="showEquipmentModal"
+              :occurrenceType="tempOccurrenceType"
+              @confirm="handleEquipmentSelection"
+              @cancel="showEquipmentModal = false"
+            />
         <!-- Botão Criar -->
         <button 
           @click="handleSubmit" 
@@ -307,6 +307,7 @@ const initializeLocalizations = () => {
 };
 
 const setType = (tipoOcorrencia) => {
+  console.log('ENVIADO PARA EquipmentSelector:', tipoOcorrencia);
   form.value.tipoOcorrencia = tipoOcorrencia;
   tempOccurrenceType.value = tipoOcorrencia;
   showEquipmentModal.value = true;
@@ -337,29 +338,37 @@ const handleMediaUpload = (event, mediaType) => {
   }
   reader.readAsDataURL(file)
 }
-
+      function getNextOccurrenceId(ocorrencias) {
+        if (!ocorrencias.length) return 1;
+        const ids = ocorrencias.map(o => typeof o.id === 'number' ? o.id : parseInt(o.id)).filter(id => !isNaN(id));
+        return ids.length ? Math.max(...ids) + 1 : 1;
+      }
 // Função para salvar ocorrência no localStorage
 const saveOccurrenceToLocalStorage = (occurrenceData) => {
   try {
     // Recupera ocorrências existentes ou cria array vazio
     const existingOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-    
+    function getFuncionarioIdByEmail(email) {
+        const funcionarios = JSON.parse(localStorage.getItem('funcionarios') || '[]');
+        const funcionario = funcionarios.find(f => f.email === email);
+        return funcionario ? funcionario.id : null;
+      }
     // Cria nova ocorrência com estrutura similar à mostrada na imagem
     const newOccurrence = {
       tipoOcorrencia: occurrenceData.tipoOcorrencia,
       localizacao: occurrenceData.localizacao,
       descricao: occurrenceData.descricao || "",
-      alocadoA: "Diogo", // Campo dinâmico - pode ser alterado futuramente
-      data: new Date().toISOString(),
-      numeroFuncionario: store.currentUser?.name || "Usuário Desconhecido",
+      alocadoA: "-", // Campo dinâmico - pode ser alterado futuramente
+      data: new Date().toLocaleDateString('pt-PT'),
+        numeroFuncionario: getFuncionarioIdByEmail(store.currentUser?.email),
       nomeFuncionario: store.currentUser?.name || "Usuário Desconhecido",
       materiais: occurrenceData.materiais || [],
       media: occurrenceData.media || null,
-      id: Date.now(), // ID único baseado em timestamp
+      id: getNextOccurrenceId(existingOccurrences),
       resolvido: false,
       validado: false
     };
-    
+   
     // Adiciona nova ocorrência ao array
     existingOccurrences.push(newOccurrence);
     
@@ -381,12 +390,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    // Salva no store (mantém funcionalidade existente)
-    await store.addOccurrence(form.value)
-    
-    // Salva também no localStorage com alocadoA = "Diogo"
     saveOccurrenceToLocalStorage(form.value);
-    
     alert('Ocorrência criada com sucesso!')
     resetForm()
     router.push('/dashboard')
