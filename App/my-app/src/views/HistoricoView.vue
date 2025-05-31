@@ -101,7 +101,7 @@ const ocorrencias = ref([]);
 let funcionarioId = null;
 if (user && user.email) {
   const funcionario = funcionarios.find(f => f.email === user.email);
-  funcionarioId = funcionario ? funcionario.id : null;
+  funcionarioId = funcionario ? funcionario.numero : null;
 }
 onMounted(() => {
   ocorrencias.value = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
