@@ -31,9 +31,6 @@ export default {
         'Material mal alocado': 'bi bi-briefcase-fill',
         'Material em falta': 'bi bi-capsule-pill',
         'Limpeza necessária': 'bi bi-trash',
-        'Equipamento Danificado': 'bi bi-tools',
-        'Local Sujo': 'bi bi-trash',
-        'Material Fora do Lugar': 'bi bi-briefcase-fill'
       }
       // Usar tipoOcorrencia em vez de type
       return icons[this.occurrence.tipoOcorrencia] || 'bi bi-exclamation-circle'
@@ -43,9 +40,6 @@ export default {
         'Material mal alocado': 'Material Mal Alocado',
         'Material em falta': 'Material em Falta',
         'Limpeza necessária': 'Limpeza Necessária',
-        'Equipamento Danificado': 'Equip. Danificado',
-        'Local Sujo': 'Local Sujo',
-        'Material Fora do Lugar': 'Material Fora Lugar'
       }
       // Usar tipoOcorrencia em vez de type
       return types[this.occurrence.tipoOcorrencia] || this.occurrence.tipoOcorrencia

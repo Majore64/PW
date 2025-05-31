@@ -440,10 +440,6 @@ const getIconForType = (tipoOcorrencia) => {
     'Material mal alocado': 'bi-briefcase-fill',
     'Material em falta': 'bi-capsule-pill',
     'Limpeza necessária': 'bi-trash',
-    'Equipamento Danificado': 'bi-tools',
-    'Falta de Material Médico': 'bi-capsule-pill',
-    'Local Sujo': 'bi-trash',
-    'Material Fora do Lugar': 'bi-briefcase-fill'
   };
   return iconMap[tipoOcorrencia] || 'bi-exclamation-circle'; // Ícone padrão
 };

@@ -189,10 +189,6 @@ const formattedType = computed(() => {
     'Material mal alocado': 'Material Mal Alocado',
     'Material em falta': 'Material em Falta',
     'Limpeza necessária': 'Limpeza Necessária',
-    'Equipamento Danificado': 'Equipamento Danificado',
-    'Falta de Material Médico': 'Falta de Material Médico',
-    'Local Sujo': 'Local Sujo',
-    'Material Fora do Lugar': 'Material Fora do Lugar'
   };
   return types[occurrence.value?.tipoOcorrencia] || occurrence.value?.tipoOcorrencia;
 });
