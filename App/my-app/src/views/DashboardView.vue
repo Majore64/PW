@@ -80,34 +80,99 @@
 <script>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useOccurrencesStore } from '@/stores/useOccurrencesStore'
 import OccurrenceCard from '@/components/OccurrenceCard.vue'
 
 export default {
   name: 'DashboardView',
   components: { OccurrenceCard },
   setup() {
-    const store = useOccurrencesStore()
     const router = useRouter()
     const isAuthenticated = ref(true)
+    const currentUser = ref(null)
+    const currentEmployee = ref(null)
+    const allOccurrences = ref([])
     
-    // Verificar se há um usuário logado
-    onMounted(() => {
-      if (!store.currentUser) {
-        console.warn('Nenhum usuário logado. Redirecionando para login.')
+    // Função para converter data no formato DD/MM/YYYY para objeto Date
+    const parseDate = (dateString) => {
+      const [day, month, year] = dateString.split('/')
+      return new Date(year, month - 1, day)
+    }
+    
+    // Função para buscar dados do localStorage
+    const loadDataFromLocalStorage = () => {
+      try {
+        // Buscar usuário logado
+        const userData = localStorage.getItem('user')
+        if (!userData) {
+          console.warn('Nenhum usuário logado encontrado no localStorage')
+          isAuthenticated.value = false
+          return
+        }
+        
+        currentUser.value = JSON.parse(userData)
+        
+        // Buscar funcionário pelo email
+        const funcionariosData = localStorage.getItem('funcionarios')
+        if (funcionariosData) {
+          const funcionarios = JSON.parse(funcionariosData)
+          currentEmployee.value = funcionarios.find(func => 
+            func.email === currentUser.value.email
+          )
+          
+          if (!currentEmployee.value) {
+            console.warn('Funcionário não encontrado para o email:', currentUser.value.email)
+            isAuthenticated.value = false
+            return
+          }
+        }
+        
+        // Buscar ocorrências
+        const ocorrenciasData = localStorage.getItem('ocorrencias')
+        if (ocorrenciasData) {
+          allOccurrences.value = JSON.parse(ocorrenciasData)
+        }
+        
+      } catch (error) {
+        console.error('Erro ao carregar dados do localStorage:', error)
         isAuthenticated.value = false
+      }
+    }
+    
+    // Verificar autenticação e carregar dados
+    onMounted(() => {
+      loadDataFromLocalStorage()
+      
+      if (!isAuthenticated.value) {
         setTimeout(() => {
           router.push('/')
         }, 2000)
       }
     })
     
+    // Computed para buscar as 2 ocorrências mais antigas alocadas ao usuário
     const oldestOccurrences = computed(() => {
-      if (!store.currentUser) return []
-      return store.oldestUserOccurrences(store.currentUserId, 2)
+      if (!currentEmployee.value || !allOccurrences.value.length) {
+        return []
+      }
+      
+      // Filtrar ocorrências alocadas ao funcionário atual e não resolvidas
+      const userOccurrences = allOccurrences.value.filter(occurrence => 
+        occurrence.alocadoA === currentEmployee.value.nome && 
+        !occurrence.resolvido
+      )
+      
+      // Ordenar por data (mais antigas primeiro) e pegar apenas as 2 primeiras
+      return userOccurrences
+        .sort((a, b) => parseDate(a.data) - parseDate(b.data))
+        .slice(0, 2)
     })
 
-    return { oldestOccurrences, isAuthenticated }
+    return { 
+      oldestOccurrences, 
+      isAuthenticated,
+      currentUser,
+      currentEmployee
+    }
   }
 }
 </script>
