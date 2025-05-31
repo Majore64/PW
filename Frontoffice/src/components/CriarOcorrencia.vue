@@ -199,7 +199,7 @@
           numeroFuncionario: Number(numeroFuncionario.value), // <-- número
           tipoOcorrencia: tipoSelecionado.value,
           localizacao: localizacao.value,
-          data: new Date().toLocaleString(),
+          data: new Date().toLocaleDateString('pt-PT'),
           materiais: materiaisEscolhidos.value,
           resolvido: resolvido.value,
           validado: validado.value,
