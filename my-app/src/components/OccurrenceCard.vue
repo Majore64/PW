@@ -10,7 +10,7 @@
       <!-- Textos -->
       <div class="text-nowrap overflow-hidden">
         <h5 class="text-white fs-5 fw-normal m-0 text-truncate">{{ formattedType }}</h5>
-        <h5 class="text-white fs-6 fw-light m-0">{{ occurrence.location }}</h5>
+        <h5 class="text-white fs-6 fw-light m-0">{{ occurrence.localizacao }}</h5>
       </div>
     </div>
   </div>
@@ -28,21 +28,27 @@ export default {
   computed: {
     typeIcon() {
       const icons = {
-        'falta_material': 'bi bi-capsule-pill',
-        'local_sujo': 'bi bi-trash',
-        'equipamento_danificado': 'bi bi-tools',
-        'material_fora_lugar': 'bi bi-briefcase-fill'
+        'Material mal alocado': 'bi bi-briefcase-fill',
+        'Material em falta': 'bi bi-capsule-pill',
+        'Limpeza necessária': 'bi bi-trash',
+        'Equipamento Danificado': 'bi bi-tools',
+        'Local Sujo': 'bi bi-trash',
+        'Material Fora do Lugar': 'bi bi-briefcase-fill'
       }
-      return icons[this.occurrence.type] || 'bi bi-exclamation-circle'
+      // Usar tipoOcorrencia em vez de type
+      return icons[this.occurrence.tipoOcorrencia] || 'bi bi-exclamation-circle'
     },
     formattedType() {
       const types = {
-        'falta_material': 'Falta Material',
-        'local_sujo': 'Local Sujo',
-        'equipamento_danificado': 'Equip. Danificado', // Texto reduzido
-        'material_fora_lugar': 'Material Fora Lugar'
+        'Material mal alocado': 'Material Mal Alocado',
+        'Material em falta': 'Material em Falta',
+        'Limpeza necessária': 'Limpeza Necessária',
+        'Equipamento Danificado': 'Equip. Danificado',
+        'Local Sujo': 'Local Sujo',
+        'Material Fora do Lugar': 'Material Fora Lugar'
       }
-      return types[this.occurrence.type] || this.occurrence.type
+      // Usar tipoOcorrencia em vez de type
+      return types[this.occurrence.tipoOcorrencia] || this.occurrence.tipoOcorrencia
     }
   },
   methods: {

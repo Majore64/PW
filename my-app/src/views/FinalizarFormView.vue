@@ -54,14 +54,14 @@
               <div>
                 <h5 class="m-0 text-capitalize">{{ formattedType }}</h5>
                 <small class="text-muted">
-                  Criado por: {{ occurrence.createdByName }}
+                  Criado por: {{ occurrence.nomeFuncionario }}
                 </small>
               </div>
             </div>
             <div class="mt-2">
-              <p class="m-0"><strong>Localização:</strong> {{ occurrence.location }}</p>
-              <p class="m-0"><strong>Data:</strong> {{ formatDate(occurrence.createdAt) }}</p>
-              <p class="m-0"><strong>Alocado a:</strong> {{ occurrence.alocadoA }}</p>
+              <p class="m-0"><strong>Localização:</strong> {{ occurrence.localizacao }}</p>
+              <p class="m-0"><strong>Data:</strong> {{ formatDate(occurrence.data) }}</p>
+              <p class="m-0"><strong>Alocado a:</strong> {{ alocadoA }}</p>
               <p class="m-0"><strong>Status: </strong> 
                 <span :class="occurrence.resolvido ? 'text-success' : 'text-warning'">
                   {{ occurrence.resolvido ? 'Resolvido' : 'Pendente' }}
@@ -218,6 +218,44 @@ const feedbackComment = ref('')
 const isAuthenticated = ref(true)
 const notFound = ref(false)
 
+// Computed property para alocadoA
+const alocadoA = computed(() => {
+  const id = Number(route.params.id)
+  
+  // Primeiro tenta buscar do localStorage
+  try {
+    const localStorageOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
+    console.log('Todas as ocorrências do localStorage:', localStorageOccurrences)
+    
+    // Procura a ocorrência com o mesmo ID
+    const localOccurrence = localStorageOccurrences.find(occ => occ.id === id)
+    
+    if (localOccurrence && localOccurrence.alocadoA) {
+      console.log('AlocadoA encontrado no localStorage:', localOccurrence.alocadoA)
+      return localOccurrence.alocadoA
+    }
+    
+    // Se não encontrou por ID, procura por ocorrências similares
+    if (occurrence.value) {
+      const similarOccurrence = localStorageOccurrences.find(occ => 
+        occ.type === occurrence.value.type && 
+        occ.localizacao === occurrence.value.localizacao
+      )
+      
+      if (similarOccurrence && similarOccurrence.alocadoA) {
+        console.log('AlocadoA encontrado em ocorrência similar:', similarOccurrence.alocadoA)
+        return similarOccurrence.alocadoA
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao buscar alocadoA do localStorage:', error)
+  }
+  
+  // Se chegou até aqui, retorna valor padrão
+  console.log('Usando valor padrão para alocadoA: Diogo')
+  return 'Diogo'
+})
+
 // Formatadores
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString('pt-PT')
@@ -271,6 +309,17 @@ const removeFile = () => {
   fileName.value = ''
 }
 
+// Função para buscar ocorrência do localStorage
+const getOccurrenceFromLocalStorage = (id) => {
+  try {
+    const localStorageOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
+    return localStorageOccurrences.find(occ => occ.id === Number(id))
+  } catch (error) {
+    console.error('Erro ao buscar ocorrência do localStorage:', error)
+    return null
+  }
+}
+
 // Carrega a ocorrência
 onMounted(async () => {
   try {
@@ -289,7 +338,13 @@ onMounted(async () => {
       throw new Error('ID inválido')
     }
     
-    const foundOccurrence = store.getOccurrenceById(occurrenceId)
+    // Primeiro tenta buscar do localStorage
+    let foundOccurrence = getOccurrenceFromLocalStorage(occurrenceId)
+    
+    // Se não encontrou no localStorage, busca do store
+    if (!foundOccurrence) {
+      foundOccurrence = store.getOccurrenceById(occurrenceId)
+    }
     
     if (!foundOccurrence) {
       console.warn('Ocorrência não encontrada ou acesso não autorizado.')
@@ -309,7 +364,13 @@ onMounted(async () => {
       return
     }
     
+    // Se encontrou a ocorrência, garante que tenha o campo alocadoA
+    if (!foundOccurrence.alocadoA) {
+      foundOccurrence.alocadoA = 'Diogo'
+    }
+    
     occurrence.value = foundOccurrence
+    console.log('Ocorrência carregada:', occurrence.value)
   } catch (error) {
     console.error('Erro ao carregar ocorrência:', error)
     notFound.value = true
@@ -355,6 +416,30 @@ const handleSubmit = async () => {
         name: fileName.value
       } : null
     })
+
+    // Atualiza também no localStorage
+    try {
+      const localStorageOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]')
+      const occurrenceIndex = localStorageOccurrences.findIndex(occ => occ.id === occurrence.value.id)
+      
+      if (occurrenceIndex !== -1) {
+        localStorageOccurrences[occurrenceIndex].resolvido = true
+        localStorageOccurrences[occurrenceIndex].resolutionComment = resolutionComment.value.trim()
+        
+        if (fileData.value) {
+          localStorageOccurrences[occurrenceIndex].resolutionProof = {
+            data: fileData.value,
+            type: fileType.value,
+            name: fileName.value
+          }
+        }
+        
+        localStorage.setItem('ocorrencias', JSON.stringify(localStorageOccurrences))
+        console.log('Ocorrência atualizada no localStorage')
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar ocorrência no localStorage:', error)
+    }
 
     if (shouldShowFeedback) {
       setTimeout(() => {

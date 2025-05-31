@@ -44,16 +44,16 @@
 
           <!-- Informações Básicas -->
           <div class="mb-4 px-3">
-            <p class="mb-2"><strong>Alerta dado por:</strong> {{ occurrence.createdByName }}</p>
+            <p class="mb-2"><strong>Alerta dado por:</strong> {{ occurrence.nomeFuncionario }}</p>
             <p class="mb-2"><strong>Data da ocorrência:</strong> {{ formattedDate }}</p>
-            <p class="mb-2"><strong>Localização:</strong> {{ occurrence.location }}</p>
-            <p class="mb-2"><strong>Alocado a:</strong> {{ occurrence.alocadoA }}</p> 
+            <p class="mb-2"><strong>Localização:</strong> {{ occurrence.localizacao }}</p>
+            <p class="mb-2"><strong>Alocado a:</strong> {{ alocadoA }}</p> 
             
             <!-- Seção de Materiais Necessários -->
-            <div v-if="occurrence.equipment?.length" class="mt-2">
+            <div v-if="occurrence.materiais?.length" class="mt-2">
               <p class="mb-3"><strong>Materiais necessários:</strong></p>
               <div class="d-flex flex-wrap gap-2">
-                <div v-for="(item, idx) in occurrence.equipment" :key="idx" class="material-item">
+                <div v-for="(item, idx) in occurrence.materiais" :key="idx" class="material-item">
                   <span class="material-name">{{ item.name }}</span>
                   <span class="material-quantity">{{ item.quantity }} un.</span>
                 </div>
@@ -72,7 +72,7 @@
               </h5>
             </div>
             <div class="p-3 pt-0 text-white" style="min-height: 100px; overflow-y: auto;">
-              <p class="mb-0">{{ currentDescription }}</p>
+              <p class="mb-0">{{ currentDescricao }}</p>
             </div>
           </div>
 
@@ -125,28 +125,82 @@ const showMedia = ref(false);
 const notFound = ref(false);
 const isAuthenticated = ref(true);
 
-const occurrence = computed(() => store.getOccurrenceById(Number(route.params.id)));
+const occurrence = computed(() => {
+  const id = Number(route.params.id);
+  
+  // Primeiro tenta buscar do localStorage
+  try {
+    const localStorageOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+    const localOccurrence = localStorageOccurrences.find(occ => occ.id === id);
+    
+    if (localOccurrence) {
+      console.log('Ocorrência encontrada no localStorage:', localOccurrence);
+      return localOccurrence;
+    }
+  } catch (error) {
+    console.error('Erro ao buscar ocorrências do localStorage:', error);
+  }
+  
+  // Se não encontrou no localStorage, busca do store
+  return store.getOccurrenceById(id);
+});
+
+const alocadoA = computed(() => {
+  const id = Number(route.params.id);
+  
+  try {
+    const localStorageOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+    console.log('Todas as ocorrências do localStorage:', localStorageOccurrences);
+    
+    const localOccurrence = localStorageOccurrences.find(occ => occ.id === id);
+    
+    if (localOccurrence && localOccurrence.alocadoA) {
+      console.log('AlocadoA encontrado no localStorage:', localOccurrence.alocadoA);
+      return localOccurrence.alocadoA;
+    }
+    
+    if (occurrence.value) {
+      const similarOccurrence = localStorageOccurrences.find(occ => 
+        occ.tipoOcorrencia === occurrence.value.tipoOcorrencia && 
+        occ.localizacao === occurrence.value.localizacao
+      );
+      
+      if (similarOccurrence && similarOccurrence.alocadoA) {
+        console.log('AlocadoA encontrado em ocorrência similar:', similarOccurrence.alocadoA);
+        return similarOccurrence.alocadoA;
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao buscar alocadoA do localStorage:', error);
+  }
+  
+  console.log('Usando valor padrão para alocadoA: Diogo');
+  return 'Diogo';
+});
 
 const formattedDate = computed(() => {
-  if (!occurrence.value?.createdAt) return '';
-  const date = new Date(occurrence.value.createdAt);
+  if (!occurrence.value?.data) return '';
+  const date = new Date(occurrence.value.data);
   return date.toLocaleDateString('pt-PT') + ' ' + date.toLocaleTimeString('pt-PT');
 });
 
 const formattedType = computed(() => {
   const types = {
-    'falta_material': 'Falta de Material',
-    'local_sujo': 'Local Sujo',
-    'equipamento_danificado': 'Equipamento Danificado',
-    'material_fora_lugar': 'Material Fora do Lugar'
+    'Material mal alocado': 'Material Mal Alocado',
+    'Material em falta': 'Material em Falta',
+    'Limpeza necessária': 'Limpeza Necessária',
+    'Equipamento Danificado': 'Equipamento Danificado',
+    'Falta de Material Médico': 'Falta de Material Médico',
+    'Local Sujo': 'Local Sujo',
+    'Material Fora do Lugar': 'Material Fora do Lugar'
   };
-  return types[occurrence.value?.type] || occurrence.value?.type;
+  return types[occurrence.value?.tipoOcorrencia] || occurrence.value?.tipoOcorrencia;
 });
 
-const currentDescription = computed(() => {
+const currentDescricao = computed(() => {
   return occurrence.value?.resolvido 
     ? occurrence.value?.resolutionComment || 'Nenhuma descrição de solução fornecida'
-    : occurrence.value?.description || 'Sem descrição';
+    : occurrence.value?.descricao || 'Sem descrição';
 });
 
 const mediaData = computed(() => {
@@ -156,12 +210,12 @@ const mediaData = computed(() => {
 });
 
 const hasMedia = computed(() => {
-  return mediaData.value?.data && mediaData.value?.type;
+  return mediaData.value?.data && mediaData.value?.tipoOcorrencia;
 });
 
 const mediaSrc = computed(() => {
   if (!mediaData.value) return '';
-  return `data:${mediaData.value.type};base64,${mediaData.value.data}`;
+  return `data:${mediaData.value.tipoOcorrencia};base64,${mediaData.value.data}`;
 });
 
 const mediaButtonText = computed(() => {
@@ -169,30 +223,37 @@ const mediaButtonText = computed(() => {
 });
 
 const mediaIcon = computed(() => {
-  const type = mediaData.value?.type || '';
-  if (type.includes('image')) return 'bi-image-fill';
-  if (type.includes('video')) return 'bi-camera-reels-fill';
+  const tipoOcorrencia = mediaData.value?.tipoOcorrencia || '';
+  if (tipoOcorrencia.includes('image')) return 'bi-image-fill';
+  if (tipoOcorrencia.includes('video')) return 'bi-camera-reels-fill';
   return 'bi-paperclip';
 });
 
-const isImage = computed(() => mediaData.value?.type?.includes('image'));
-const isVideo = computed(() => mediaData.value?.type?.includes('video'));
-
-const formattedStatus = computed(() => {
-  return occurrence.value?.resolvido ? 'RESOLVIDO' : 'PENDENTE';
+const isImage = computed(() => {
+  const tipoOcorrencia = mediaData.value?.tipoOcorrencia || '';
+  return tipoOcorrencia.includes('image');
 });
 
-const statusClass = computed(() => {
-  return occurrence.value?.resolvido 
-    ? 'bg-success text-white'
-    : 'bg-warning text-dark';
+const isVideo = computed(() => {
+  const tipoOcorrencia = mediaData.value?.tipoOcorrencia || '';
+  return tipoOcorrencia.includes('video');
 });
 
-// Verificar autenticação e se a ocorrência existe e pertence ao usuário atual
+// Função para buscar ocorrência diretamente do localStorage
+const getOccurrenceFromLocalStorage = (id) => {
+  try {
+    const localStorageOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+    return localStorageOccurrences.find(occ => occ.id === Number(id));
+  } catch (error) {
+    console.error('Erro ao buscar ocorrência do localStorage:', error);
+    return null;
+  }
+};
+
 onMounted(() => {
   const id = Number(route.params.id);
-  const foundOccurrence = store.getOccurrenceById(id);
   
+  // Verifica autenticação
   if (!store.currentUser) {
     console.warn('Nenhum usuário logado. Redirecionando para login.');
     isAuthenticated.value = false;
@@ -202,12 +263,19 @@ onMounted(() => {
     return;
   }
 
-  if (!foundOccurrence) {
+  // Verifica se a ocorrência existe
+  if (!occurrence.value) {
     console.warn('Ocorrência não encontrada ou acesso não autorizado.');
     notFound.value = true;
     setTimeout(() => {
       router.push('/dashboard');
     }, 2000);
+  } else {
+    // Garante que alocadoA tenha um valor
+    if (!occurrence.value.alocadoA) {
+      occurrence.value.alocadoA = 'Diogo';
+    }
+    console.log('Ocorrência carregada:', occurrence.value);
   }
 });
 </script>

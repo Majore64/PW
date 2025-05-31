@@ -114,8 +114,8 @@ const userOccurrences = computed(() => {
   
   // Ordena cada grupo
   const sortFn = (a, b) => sortOrder.value === 'recentes' 
-    ? new Date(b.createdAt) - new Date(a.createdAt)
-    : new Date(a.createdAt) - new Date(b.createdAt);
+    ? new Date(b.data) - new Date(a.data)
+    : new Date(a.data) - new Date(b.data);
   
   return [
     ...pending.sort(sortFn),

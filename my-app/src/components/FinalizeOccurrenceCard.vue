@@ -2,8 +2,8 @@
   <div class="card">
     <div class="card-body" @click="goToDetails">
       <h5 class="card-title">{{ formattedType }}</h5>
-      <p class="card-text">Criado por: {{ occurrence.createdByName }}</p>
-      <p class="card-text">Localização: {{ occurrence.location }}</p>
+      <p class="card-text">Criado por: {{ occurrence.nomeFuncionario }}</p>
+      <p class="card-text">Localização: {{ occurrence.localizacao }}</p>
       <button 
         @click.stop="goToFinalize"
         class="btn btn-primary"

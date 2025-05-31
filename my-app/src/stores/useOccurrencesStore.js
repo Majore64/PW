@@ -9,14 +9,8 @@ export const useOccurrencesStore = defineStore("occurrences", {
     return {
       occurrences: JSON.parse(localStorage.getItem("occurrences")) || [],
       currentUser: currentUser,
-      currentUserId: userId, 
+      currentUserId: userId,
       completedCount: JSON.parse(localStorage.getItem(`completedCount_${userId}`)) || 0,
-      equipmentSuggestions: {
-        local_sujo: ["Esfregona", "Vassoura", "Luvas", "Aspirador", "Desinfetante"],
-        equipamento_danificado: ["Ferramentas", "Peças de reposição", "Multímetro"],
-        falta_material: ["Material médico", "Medicamentos", "Equipamento cirúrgico", "Luvas estéreis"],
-        material_fora_lugar: ["Carrinho de transporte", "Etiquetas", "Sistema de armazenamento"],
-      },
     }
   },
   actions: {
@@ -32,25 +26,25 @@ export const useOccurrencesStore = defineStore("occurrences", {
         ...occurrence,
         id: Date.now(),
         resolvido: false,
-        alocadoA: "-",
         validado: false,
-        createdAt: new Date().toISOString(),
-        createdBy: this.currentUserId,
-        createdByName: this.currentUser.name,
+        data: new Date().toISOString(),
+        numeroFuncionario: this.currentUserId,
+        nomeFuncionario: this.currentUser.name,
         media: occurrence.media || null,
-        equipment: occurrence.equipment || [],
-        equipmentNotes: occurrence.equipmentNotes || "",
+        materiais: occurrence.materiais || [],
+        tipoOcorrencia: occurrence.tipoOcorrencia,
+        localizacao: occurrence.localizacao,
       }
 
       // Garantir imutabilidade
       this.occurrences = [...this.occurrences, newOccurrence]
-      localStorage.setItem("occurrences", JSON.stringify(this.occurrences))
+      localStorage.setItem("ocorrencias", JSON.stringify(this.occurrences))
     },
 
     resolveOccurrence({ id, comment, proof }) {
       try {
         // Encontrar o índice da ocorrência ao invés do objeto diretamente
-        const index = this.occurrences.findIndex((o) => o.id === id && o.createdBy === this.currentUserId)
+        const index = this.occurrences.findIndex((o) => o.id === id && o.numeroFuncionario === this.currentUserId)
         if (index === -1) return false
 
         // Criar uma cópia do array para garantir reatividade
@@ -65,7 +59,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
           resolvedBy: this.currentUserId,
           resolutionProof: proof
             ? {
-                type: proof.type,
+                tipoOcorrencia: proof.tipoOcorrencia,
                 data: proof.data,
                 name: proof.name,
                 uploadedAt: new Date().toISOString(),
@@ -109,7 +103,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
   getters: {
     // Garante que só retorne ocorrências do usuário atual
     getOccurrenceById: (state) => (id) => {
-      return state.occurrences.find((o) => o.id === Number(id) && o.createdBy === state.currentUserId)
+      return state.occurrences.find((o) => o.id === Number(id) && o.numeroFuncionario === state.currentUserId)
     },
 
     userOccurrences: (state) => (userId) => {
@@ -118,7 +112,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
         console.warn("Tentativa de acessar ocorrências de outro usuário")
         return []
       }
-      return state.occurrences.filter((o) => o.createdBy === userId)
+      return state.occurrences.filter((o) => o.numeroFuncionario === userId)
     },
 
     userPendingOccurrences: (state) => (userId) => {
@@ -127,7 +121,7 @@ export const useOccurrencesStore = defineStore("occurrences", {
         console.warn("Tentativa de acessar ocorrências pendentes de outro usuário")
         return []
       }
-      return state.occurrences.filter((o) => !o.resolvido && o.createdBy === userId) // Mudança: !o.resolvido em vez de status === "pending"
+      return state.occurrences.filter((o) => !o.resolvido && o.numeroFuncionario === userId)
     },
 
     oldestUserOccurrences:
@@ -139,8 +133,8 @@ export const useOccurrencesStore = defineStore("occurrences", {
           return []
         }
         return state.occurrences
-          .filter((o) => o.createdBy === userId && !o.resolvido) // Mudança: !o.resolvido em vez de status === "pending"
-          .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+          .filter((o) => o.numeroFuncionario === userId && !o.resolvido)
+          .sort((a, b) => new Date(a.data) - new Date(b.data))
           .slice(0, limit)
       },
   },

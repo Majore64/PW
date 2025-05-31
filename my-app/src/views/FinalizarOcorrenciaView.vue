@@ -41,8 +41,8 @@
             <div class="card">
               <div class="card-body" @click="goToDetails(occurrence.id)">
                 <h5 class="card-title">{{ formatType(occurrence.type) }}</h5>
-                <p class="card-text">Criado por: {{ occurrence.createdByName }}</p>
-                <p class="card-text">Localização: {{ occurrence.location }}</p>
+                <p class="card-text">Criado por: {{ occurrence.nomeFuncionario }}</p>
+                <p class="card-text">Localização: {{ occurrence.localizacao }}</p>
                 <button 
                   @click.stop="goToFinalize(occurrence.id)"
                   class="btn btn-primary"
