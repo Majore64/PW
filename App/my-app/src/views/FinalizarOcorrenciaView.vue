@@ -39,9 +39,17 @@
           <div v-for="occurrence in pendingOccurrences" :key="occurrence.id" class="mb-4">
             <div class="card">
               <div class="card-body" @click="goToDetails(occurrence.id)">
-                <h5 class="card-title">{{ formatType(occurrence.tipoOcorrencia) }}</h5>
+                <h5 class="card-title">{{ occurrence.tipoOcorrencia }}</h5>
                 <p class="card-text">Criado por: {{ occurrence.nomeFuncionario }}</p>
                 <p class="card-text">Localização: {{ occurrence.localizacao }}</p>
+                <p class="card-text">Data: {{ occurrence.data }}</p>
+                <p class="card-text">
+                  <span class="badge bg-success">Validado</span>
+                  <span class="badge bg-warning ms-2">Aguarda Resolução</span>
+                </p>
+                <p class="card-text text-muted">
+                  <small>Alocado para: {{ occurrence.alocadoA }}</small>
+                </p>
                 <button 
                   @click.stop="goToFinalize(occurrence.id)"
                   class="btn btn-primary"
@@ -55,7 +63,12 @@
         <template v-else>
           <div class="text-center text-muted py-4">
             <i class="bi bi-check-circle fs-1"></i>
-            <p class="mt-2">Nenhuma ocorrência pendente</p>
+            <p class="mt-2">Nenhuma ocorrência alocada para finalizar</p>
+            <p class="text-muted">
+              <small v-if="currentEmployee">
+                Utilizador: {{ currentEmployee.nome }} ({{ currentEmployee.email }})
+              </small>
+            </p>
           </div>
         </template>
       </div>
@@ -66,37 +79,93 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
 
 const router = useRouter();
-const store = useOccurrencesStore();
 const isAuthenticated = ref(true);
+const allOccurrences = ref([]);
+const currentUser = ref(null);
+const currentEmployee = ref(null);
 
-// Verificar autenticação
+// Verificar autenticação e carregar dados
 onMounted(() => {
-  if (!store.currentUser) {
+  // Verificar se há usuário logado
+  const user = localStorage.getItem('user');
+  if (!user) {
     console.warn('Nenhum usuário logado. Redirecionando para login.');
     isAuthenticated.value = false;
     setTimeout(() => {
       router.push('/');
     }, 2000);
+    return;
   }
+
+  // Carregar dados do utilizador e ocorrências
+  loadUserData();
+  loadOccurrences();
 });
 
-const pendingOccurrences = computed(() => {
-  if (!store.currentUser) return [];
-  // Usa diretamente as propriedades como estão no localStorage
-  return store.userPendingOccurrences(store.currentUserId);
-});
-const formatType = (type) => {
-  const types = {
-    'falta_material': 'Falta de Material',
-    'local_sujo': 'Local Sujo',
-    'equipamento_danificado': 'Equipamento Danificado',
-    'material_fora_lugar': 'Material Fora do Lugar'
-  };
-  return types[type] || type;
+const loadUserData = () => {
+  try {
+    // Carregar dados do utilizador do Google
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      currentUser.value = JSON.parse(userData);
+      console.log('Utilizador logado:', currentUser.value);
+      
+      // Encontrar o funcionário correspondente pelo email
+      const employees = localStorage.getItem('funcionarios');
+      if (employees) {
+        const employeesList = JSON.parse(employees);
+        currentEmployee.value = employeesList.find(emp => 
+          emp.email === currentUser.value.email
+        );
+        console.log('Funcionário encontrado:', currentEmployee.value);
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar dados do utilizador:', error);
+  }
 };
+
+const loadOccurrences = () => {
+  try {
+    const storedOccurrences = localStorage.getItem('ocorrencias');
+    if (storedOccurrences) {
+      allOccurrences.value = JSON.parse(storedOccurrences);
+      console.log('Ocorrências carregadas:', allOccurrences.value);
+    }
+  } catch (error) {
+    console.error('Erro ao carregar ocorrências do localStorage:', error);
+    allOccurrences.value = [];
+  }
+};
+
+// Filtrar ocorrências alocadas ao utilizador atual que estão validadas e não resolvidas
+const pendingOccurrences = computed(() => {
+  if (!currentEmployee.value) {
+    console.log('Nenhum funcionário encontrado');
+    return [];
+  }
+
+  const filtered = allOccurrences.value.filter(occurrence => {
+    const isAllocatedToUser = occurrence.alocadoA === currentEmployee.value.nome;
+    const isValidated = occurrence.validado === true;
+    const isNotResolved = occurrence.resolvido === false;
+    
+    console.log(`Ocorrência ${occurrence.id}:`, {
+      alocadoA: occurrence.alocadoA,
+      currentEmployeeName: currentEmployee.value.nome,
+      isAllocatedToUser,
+      isValidated,
+      isNotResolved
+    });
+    
+    return isAllocatedToUser && isValidated && isNotResolved;
+  });
+
+  console.log('Ocorrências filtradas para o utilizador:', filtered);
+  return filtered;
+});
 
 const goToDetails = (id) => {
   router.push({ name: 'VisualizarOcorrencia', params: { id } });
@@ -129,5 +198,9 @@ const goToFinalize = (id) => {
 .btn-primary {
   background-color: #5cbdb9;
   border-color: #5cbdb9;
+}
+
+.badge {
+  font-size: 0.75em;
 }
 </style>
