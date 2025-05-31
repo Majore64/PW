@@ -140,7 +140,7 @@
             const matObj = stockMateriais.find(m => m.nomeMaterial === nome)
             return matObj ? matObj.quantidade : 1
           }
-        onMounted(() => {
+    onMounted(() => {
         tipoSelecionado.value = route.query.tipo || ''
 
         // Carregar o email do localStorage
@@ -148,7 +148,11 @@
         if (userEmail) {
           email.value = userEmail
         }
-
+        const funcionarios = JSON.parse(localStorage.getItem('funcionarios') || '[]');
+         const funcionario = funcionarios.find(f => f.email === userEmail);
+          if (funcionario) {
+            numeroFuncionario.value = funcionario.id; // <-- GUARDA O I
+          }
         // Carregar o nome do utilizador Google do localStorage
         const userData = localStorage.getItem('user')
         if (userData) {
