@@ -49,7 +49,7 @@
               style="display: none"
             >
             <label
-              v-if="!form.media || form.media.type !== 'photo'"
+              v-if="!form.media || form.media.tipoOcorrencia !== 'photo'"
               for="photoInput"
               class="btn btn-secondary text-white mx-2"
               style="width:140px; cursor: pointer"
@@ -76,7 +76,7 @@
               style="display: none"
             >
             <label
-              v-if="!form.media || form.media.type !== 'video'"
+              v-if="!form.media || form.media.tipoOcorrencia !== 'video'"
               for="videoInput"
               class="btn btn-secondary text-white mx-2"
               style="width:140px; cursor: pointer"
@@ -96,17 +96,24 @@
 
         <!-- Campos de Texto -->
         <div class="mt-4">
-          <textarea 
-            v-model="form.location" 
-            class="form-control border-secondary m-4" 
-            rows="1" 
-            placeholder="Localização..." 
-            style="width:340px"
+          <select 
+            v-model="form.localizacao" 
+            class="form-select border-secondary m-4"
+            style="width:340px; height:45px;"
             required
-          ></textarea>
+          >
+            <option value="" disabled selected>Selecione uma localização...</option>
+            <option 
+              v-for="(localizacao, index) in locationOptions" 
+              :key="index" 
+              :value="localizacao"
+            >
+              {{ localizacao }}
+            </option>
+          </select>
 
           <textarea 
-            v-model="form.description" 
+            v-model="form.descricao" 
             class="form-control border-secondary m-4" 
             rows="4" 
             placeholder="Descrição..." 
@@ -120,48 +127,25 @@
 
       <!-- Botões de Tipo -->
       <div class="text-center m-1">
-        <div class="d-flex justify-content-center mb-3">
+        <div class="d-flex flex-wrap justify-content-center gap-3 mb-3">
           <button 
-            @click="setType('falta_material')"
-            :class="['tipo-btn', { 'accent-btn': form.type === 'falta_material' }]"
+            v-for="(tipoOcorrencia, index) in occurrenceTypes" 
+            :key="index"
+            @click="setType(tipoOcorrencia)"
+            :class="['tipo-btn', { 'accent-btn': form.tipoOcorrencia === tipoOcorrencia }]"
+            style="min-width: 200px; padding: 10px 15px;"
           >
-            <i class="bi bi-capsule-pill icon-btn"></i> 
-            Falta de Material Médico
-          </button>
-
-          <button 
-            @click="setType('local_sujo')"
-            :class="['tipo-btn', { 'accent-btn': form.type === 'local_sujo' }]"
-          >
-            <i class="bi bi-trash icon-btn"></i> 
-            Local Sujo
-          </button>
-        </div>
-
-        <div class="d-flex justify-content-center mb-3">
-          <button 
-            @click="setType('equipamento_danificado')"
-            :class="['tipo-btn', { 'accent-btn': form.type === 'equipamento_danificado' }]"
-          >
-            <i class="bi bi-tools icon-btn"></i> 
-            Equipamento Danificado
-          </button>
-
-          <button 
-            @click="setType('material_fora_lugar')"
-            :class="['tipo-btn', { 'accent-btn': form.type === 'material_fora_lugar' }]"
-          >
-            <i class="bi bi-briefcase-fill icon-btn"></i> 
-            Material Fora do Lugar
+            <i :class="getIconForType(tipoOcorrencia)" class="icon-btn me-2"></i> 
+            {{ tipoOcorrencia }}
           </button>
         </div>
 
         <!-- Botão Criar -->
         <button 
           @click="handleSubmit" 
-          :disabled="!form.type || !form.location"
+          :disabled="!form.tipoOcorrencia || !form.localizacao"
           class="btn btn-secondary text-white mt-1 fs-3 rounded-4" 
-          style="width:100px"
+          style="width:90px; height: 43px; font-size: 1rem; padding-top: 2px"
         >
           Criar
         </button>
@@ -180,39 +164,157 @@ const router = useRouter();
 const store = useOccurrencesStore();
 const isAuthenticated = ref(true);
 
-// Verificar autenticação
-onMounted(() => {
-  if (!store.currentUser) {
-    console.warn('Nenhum usuário logado. Redirecionando para login.');
-    isAuthenticated.value = false;
-    setTimeout(() => {
-      router.push('/');
-    }, 2000);
-  }
-});
-
 const form = ref({
-  type: '',
-  location: '',
-  description: '',
+  tipoOcorrencia: '',
+  localizacao: '',
+  descricao: '',
   media: null,
-  equipment: [],
-  equipmentNotes: ''
+  materiais: []
 });
 
 const showEquipmentModal = ref(false);
 const tempOccurrenceType = ref('');
+const locationOptions = ref([]); 
 
-const setType = (type) => {
-  form.value.type = type;
-  tempOccurrenceType.value = type;
-  showEquipmentModal.value = true; // Agora abre para todos os tipos
+const occurrenceTypes = ref([]);
+const loadOccurrenceTypes = () => {
+  try {
+    // Verifica se estamos no cliente (localStorage só existe no navegador)
+    if (typeof window !== 'undefined') {
+      const storedTypes = localStorage.getItem('tipoOcorrencias');
+      
+      if (storedTypes) {
+        // Parse seguro do JSON
+        occurrenceTypes.value = JSON.parse(storedTypes);
+        console.log('Tipos carregados:', occurrenceTypes.value);
+      } else {
+        console.warn('Nenhum tipo encontrado no localStorage');
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar tipos:', error);
+  }
 };
 
-const handleEquipmentSelection = ({ equipment, notes }) => {
-  form.value.equipment = equipment
-  form.value.equipmentNotes = notes
-  showEquipmentModal.value = false
+const loadLocationOptions = () => {
+  try {
+    const storedLocations = localStorage.getItem('tipoLocalizacoes');
+    if (storedLocations) {
+      locationOptions.value = JSON.parse(storedLocations);
+      console.log('Localizações carregadas:', locationOptions.value);
+    }
+  } catch (error) {
+    console.error('Erro ao carregar localizações:', error);
+  }
+};
+
+const initializeOccurrenceTypes = () => {
+  const defaultTypes = [
+    "Material mal alocado",
+    "Material em falta",
+    "Limpeza necessária"
+  ];
+  
+  // Verifica se já existe no localStorage
+  if (!localStorage.getItem('tipoOcorrencias')) {
+    // Armazena como JSON válido
+    localStorage.setItem('tipoOcorrencias', JSON.stringify(defaultTypes));
+    console.log('Tipos de ocorrência inicializados no localStorage');
+  }
+};
+
+const initializeMaterialsInLocalStorage = () => {
+  // Verifica se o localStorage está disponível
+  if (typeof localStorage === 'undefined') {
+    console.error('localStorage não está disponível neste ambiente');
+    return;
+  }
+
+  // Dados iniciais dos materiais
+  const initialMaterials = [
+    {
+      id: Date.now(), // Usa timestamp como ID único
+      nomeMaterial: "Esfregona",
+      quantidade: 10,
+      estado: "Disponivel",
+      quantRest: 7
+    },
+    {
+      id: Date.now() + 1, // ID diferente para o próximo item
+      nomeMaterial: "Detergente",
+      quantidade: 15,
+      estado: "Disponivel",
+      quantRest: 12
+    },
+    {
+      id: Date.now() + 2,
+      nomeMaterial: "Luvas descartáveis",
+      quantidade: 100,
+      estado: "Disponivel",
+      quantRest: 45
+    }
+  ];
+
+  // Verifica se já existe algum dado de materiais
+  const existingMaterials = localStorage.getItem('materiais');
+  
+  // Só inicializa se não existirem materiais
+  if (!existingMaterials) {
+    try {
+      localStorage.setItem('materiais', JSON.stringify(initialMaterials));
+      console.log('Materiais inicializados no localStorage:', initialMaterials);
+    } catch (error) {
+      console.error('Erro ao salvar materiais no localStorage:', error);
+    }
+  } else {
+    console.log('Materiais já existem no localStorage');
+  }
+};
+
+const initializeLocalizations = () => {
+  try {
+    // Verifica se estamos no ambiente do navegador
+    if (typeof window === 'undefined') return;
+
+    const defaultLocalizations = [
+      "Piso 1, sala 1",
+      "Piso 1, sala 2",
+      "Piso 1, sala 3",
+      "Piso 2, sala 1",
+      "Piso 2, sala 2",
+      "Piso 2, sala 3"
+    ];
+
+    // Verifica se já existe e está no formato correto
+    const storedLocations = localStorage.getItem('tipoLocalizacoes');
+    
+    if (!storedLocations) {
+      localStorage.setItem('tipoLocalizacoes', JSON.stringify(defaultLocalizations));
+      console.log('Localizações padrão criadas no localStorage');
+    } else {
+      try {
+        // Tenta parsear para verificar se é JSON válido
+        JSON.parse(storedLocations);
+      } catch {
+        // Se não for JSON válido, recria com os valores padrão
+        localStorage.setItem('tipoLocalizacoes', JSON.stringify(defaultLocalizations));
+        console.log('Localizações corrompidas - recriadas com valores padrão');
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao inicializar localizações:', error);
+  }
+};
+
+const setType = (tipoOcorrencia) => {
+  form.value.tipoOcorrencia = tipoOcorrencia;
+  tempOccurrenceType.value = tipoOcorrencia;
+  showEquipmentModal.value = true;
+};
+
+const handleEquipmentSelection = ({ materiais }) => {
+  form.value.materiais = materiais;
+  showEquipmentModal.value = false;
 }
 
 const handleMediaUpload = (event, mediaType) => {
@@ -227,7 +329,7 @@ const handleMediaUpload = (event, mediaType) => {
   const reader = new FileReader()
   reader.onload = (e) => {
     form.value.media = {
-      type: mediaType,
+      tipoOcorrencia: mediaType,
       data: e.target.result,
       mimeType: file.type,
       name: file.name
@@ -236,14 +338,55 @@ const handleMediaUpload = (event, mediaType) => {
   reader.readAsDataURL(file)
 }
 
+// Função para salvar ocorrência no localStorage
+const saveOccurrenceToLocalStorage = (occurrenceData) => {
+  try {
+    // Recupera ocorrências existentes ou cria array vazio
+    const existingOccurrences = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+    
+    // Cria nova ocorrência com estrutura similar à mostrada na imagem
+    const newOccurrence = {
+      tipoOcorrencia: occurrenceData.tipoOcorrencia,
+      localizacao: occurrenceData.localizacao,
+      descricao: occurrenceData.descricao || "",
+      alocadoA: "Diogo", // Campo dinâmico - pode ser alterado futuramente
+      data: new Date().toISOString(),
+      numeroFuncionario: store.currentUser?.name || "Usuário Desconhecido",
+      nomeFuncionario: store.currentUser?.name || "Usuário Desconhecido",
+      materiais: occurrenceData.materiais || [],
+      media: occurrenceData.media || null,
+      id: Date.now(), // ID único baseado em timestamp
+      resolvido: false,
+      validado: false
+    };
+    
+    // Adiciona nova ocorrência ao array
+    existingOccurrences.push(newOccurrence);
+    
+    // Salva de volta no localStorage
+    localStorage.setItem('ocorrencias', JSON.stringify(existingOccurrences));
+    
+    console.log('Ocorrência salva no localStorage:', newOccurrence);
+    return newOccurrence;
+  } catch (error) {
+    console.error('Erro ao salvar ocorrência no localStorage:', error);
+    throw error;
+  }
+};
+
 const handleSubmit = async () => {
-  if (!form.value.type || !form.value.location) {
+  if (!form.value.tipoOcorrencia || !form.value.localizacao) {
     alert('Preencha o tipo e a localização!')
     return
   }
 
   try {
+    // Salva no store (mantém funcionalidade existente)
     await store.addOccurrence(form.value)
+    
+    // Salva também no localStorage com alocadoA = "Diogo"
+    saveOccurrenceToLocalStorage(form.value);
+    
     alert('Ocorrência criada com sucesso!')
     resetForm()
     router.push('/dashboard')
@@ -254,14 +397,56 @@ const handleSubmit = async () => {
 
 const resetForm = () => {
   form.value = {
-    type: '',
-    location: '',
-    description: '',
+    tipoOcorrencia: '',
+    localizacao: '',
+    descricao: '',
     media: null,
-    equipment: [],
-    equipmentNotes: ''
+    materiais: []
   }
-}
+};
+
+onMounted(() => {
+  console.log('=== onMounted INICIADO ===');
+  
+  // Força a criação de tipoFuncoes PRIMEIRO
+  console.log('Criando tipoFuncoes...');
+  const funcoes = ["Médico", "Funcionário de Limpeza", "Enfermeiro"];
+  localStorage.setItem('tipoFuncoes', JSON.stringify(funcoes));
+  console.log('tipoFuncoes criado:', localStorage.getItem('tipoFuncoes'));
+  
+  // Depois executa as outras inicializações
+  initializeOccurrenceTypes();
+  initializeMaterialsInLocalStorage();
+  initializeLocalizations();
+  loadLocationOptions();
+
+  if (!store.currentUser) {
+    console.warn('Nenhum usuário logado. Redirecionando para login.');
+    isAuthenticated.value = false;
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+    return;
+  }
+  
+  loadOccurrenceTypes();
+  loadLocationOptions(); 
+  
+  console.log('=== onMounted FINALIZADO ===');
+});
+
+const getIconForType = (tipoOcorrencia) => {
+  const iconMap = {
+    'Material mal alocado': 'bi-briefcase-fill',
+    'Material em falta': 'bi-capsule-pill',
+    'Limpeza necessária': 'bi-trash',
+    'Equipamento Danificado': 'bi-tools',
+    'Falta de Material Médico': 'bi-capsule-pill',
+    'Local Sujo': 'bi-trash',
+    'Material Fora do Lugar': 'bi-briefcase-fill'
+  };
+  return iconMap[tipoOcorrencia] || 'bi-exclamation-circle'; // Ícone padrão
+};
 </script>
 
 <style scoped lang="scss">
@@ -290,7 +475,7 @@ $primary-light: #93E5E0;
     background-color: $primary-light;
     border: 2px solid $primary-light;
     color: white;
-    width: 175px;
+    min-width: 175px;
     transition: all 0.3s ease;
     padding: 10px;
     display: flex;
@@ -298,6 +483,12 @@ $primary-light: #93E5E0;
     justify-content: center;
     margin: 0 0.5rem;
     border-radius: 6px;
+    flex: 1 0 auto;
+    max-width: 250px;
+  }
+
+  .d-flex.flex-wrap {
+    gap: 10px;
   }
 
   .accent-btn {
