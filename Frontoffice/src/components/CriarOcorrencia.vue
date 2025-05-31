@@ -193,8 +193,14 @@
               return
             }
           }
+                // Buscar ocorrências existentes
+        const ocorrenciasExistentes = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        // Gerar id sequencial
+        const novoId = ocorrenciasExistentes.length > 0
+          ? Math.max(...ocorrenciasExistentes.map(o => Number(o.id))) + 1
+          : 1;
         const novaOcorrencia = {
-          id: Date.now().toString(),
+          id: novoId,
           nomeFuncionario: nomeFuncionario.value,
           numeroFuncionario: Number(numeroFuncionario.value), // <-- número
           tipoOcorrencia: tipoSelecionado.value,
