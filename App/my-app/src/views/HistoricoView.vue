@@ -102,7 +102,6 @@ let funcionarioId = null;
 if (user && user.email) {
   const funcionario = funcionarios.find(f => f.email === user.email);
   funcionarioId = funcionario ? funcionario.id : null;
-  console.log('Funcionário encontrado:', funcionario);
 }
 onMounted(() => {
   ocorrencias.value = JSON.parse(localStorage.getItem('ocorrencias') || '[]');

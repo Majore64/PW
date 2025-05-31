@@ -191,6 +191,7 @@ const statusClass = computed(() => {
 // Verificar autenticação e se a ocorrência existe e pertence ao usuário atual
 onMounted(() => {
   const id = Number(route.params.id);
+  console.log('ID recebido pela rota:', id);
   const foundOccurrence = store.getOccurrenceById(id);
   
   if (!store.currentUser) {
