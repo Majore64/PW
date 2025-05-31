@@ -58,7 +58,7 @@
           :key="occurrence.id"
           class="occurrence-wrapper"
           :style="getCardStyle(occurrence.resolvido)"
-          @click="router.push(`/visualizar/${occurrence.id}`)"
+          @click="router.push(`/ocorrencia/${occurrence.id}`)"
           style="cursor: pointer;"
         >
           <OccurrenceCard :occurrence="occurrence" />

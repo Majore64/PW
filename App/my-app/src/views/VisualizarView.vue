@@ -44,18 +44,18 @@
 
           <!-- Informações Básicas -->
           <div class="mb-4 px-3">
-            <p class="mb-2"><strong>Alerta dado por:</strong> {{ occurrence.createdByName }}</p>
+           <p class="mb-2"><strong>Alerta dado por:</strong> {{ occurrence.nomeFuncionario }}</p>
             <p class="mb-2"><strong>Data da ocorrência:</strong> {{ formattedDate }}</p>
-            <p class="mb-2"><strong>Localização:</strong> {{ occurrence.location }}</p>
-            <p class="mb-2"><strong>Alocado a:</strong> {{ occurrence.alocadoA }}</p> 
+            <p class="mb-2"><strong>Localização:</strong> {{ occurrence.localizacao }}</p>
+            <p class="mb-2"><strong>Alocado a:</strong> {{ occurrence.alocadoA }}</p>
             
             <!-- Seção de Materiais Necessários -->
-            <div v-if="occurrence.equipment?.length" class="mt-2">
+            <div v-if="occurrence.materiais?.length" class="mt-2">
               <p class="mb-3"><strong>Materiais necessários:</strong></p>
               <div class="d-flex flex-wrap gap-2">
-                <div v-for="(item, idx) in occurrence.equipment" :key="idx" class="material-item">
-                  <span class="material-name">{{ item.name }}</span>
-                  <span class="material-quantity">{{ item.quantity }} un.</span>
+                <div v-for="(item, idx) in occurrence.materiais" :key="idx" class="material-item">
+                  <span class="material-name">{{ item.nome }}</span>
+                  <span class="material-quantity">{{ item.quantidade }} un.</span>
                 </div>
               </div>
             </div>
@@ -116,68 +116,59 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useOccurrencesStore } from '@/stores/useOccurrencesStore';
 
 const route = useRoute();
 const router = useRouter();
-const store = useOccurrencesStore();
 const showMedia = ref(false);
 const notFound = ref(false);
 const isAuthenticated = ref(true);
 
-const occurrence = computed(() => store.getOccurrenceById(Number(route.params.id)));
+const occurrence = ref(null);
 
+onMounted(() => {
+  const id = Number(route.params.id);
+  console.log('ID recebido pela rota:', id);
+
+  // Buscar exatamente como está no localStorage
+  const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+  // Procurar pelo id
+  const foundOccurrence = ocorrencias.find(o => Number(o.id) === id);
+
+  if (!foundOccurrence) {
+    console.warn('Ocorrência não encontrada.');
+    notFound.value = true;
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 2000);
+    return;
+  }
+
+  occurrence.value = foundOccurrence;
+});
+
+// Computed para data (usa o campo 'data' do localStorage)
 const formattedDate = computed(() => {
-  if (!occurrence.value?.createdAt) return '';
-  const date = new Date(occurrence.value.createdAt);
+  if (!occurrence.value?.data) return '';
+  const date = new Date(occurrence.value.data);
   return date.toLocaleDateString('pt-PT') + ' ' + date.toLocaleTimeString('pt-PT');
 });
 
+// Computed para tipo (usa o campo 'tipoOcorrencia')
 const formattedType = computed(() => {
-  const types = {
-    'falta_material': 'Falta de Material',
-    'local_sujo': 'Local Sujo',
-    'equipamento_danificado': 'Equipamento Danificado',
-    'material_fora_lugar': 'Material Fora do Lugar'
-  };
-  return types[occurrence.value?.type] || occurrence.value?.type;
+  return occurrence.value?.tipoOcorrencia || '';
 });
 
+// Computed para descrição (usa o campo 'descricao')
 const currentDescription = computed(() => {
-  return occurrence.value?.resolvido 
-    ? occurrence.value?.resolutionComment || 'Nenhuma descrição de solução fornecida'
-    : occurrence.value?.description || 'Sem descrição';
+  return occurrence.value?.descricao || 'Sem descrição';
 });
 
-const mediaData = computed(() => {
-  return occurrence.value?.resolvido
-    ? occurrence.value?.resolutionProof
-    : occurrence.value?.media;
+// Computed para materiais (usa o campo 'materiais')
+const materiais = computed(() => {
+  return occurrence.value?.materiais || [];
 });
 
-const hasMedia = computed(() => {
-  return mediaData.value?.data && mediaData.value?.type;
-});
-
-const mediaSrc = computed(() => {
-  if (!mediaData.value) return '';
-  return `data:${mediaData.value.type};base64,${mediaData.value.data}`;
-});
-
-const mediaButtonText = computed(() => {
-  return occurrence.value?.resolvido ? 'Ver Prova' : 'Ver Media';
-});
-
-const mediaIcon = computed(() => {
-  const type = mediaData.value?.type || '';
-  if (type.includes('image')) return 'bi-image-fill';
-  if (type.includes('video')) return 'bi-camera-reels-fill';
-  return 'bi-paperclip';
-});
-
-const isImage = computed(() => mediaData.value?.type?.includes('image'));
-const isVideo = computed(() => mediaData.value?.type?.includes('video'));
-
+// Computed para status/resolvido
 const formattedStatus = computed(() => {
   return occurrence.value?.resolvido ? 'RESOLVIDO' : 'PENDENTE';
 });
@@ -186,30 +177,6 @@ const statusClass = computed(() => {
   return occurrence.value?.resolvido 
     ? 'bg-success text-white'
     : 'bg-warning text-dark';
-});
-
-// Verificar autenticação e se a ocorrência existe e pertence ao usuário atual
-onMounted(() => {
-  const id = Number(route.params.id);
-  console.log('ID recebido pela rota:', id);
-  const foundOccurrence = store.getOccurrenceById(id);
-  
-  if (!store.currentUser) {
-    console.warn('Nenhum usuário logado. Redirecionando para login.');
-    isAuthenticated.value = false;
-    setTimeout(() => {
-      router.push('/');
-    }, 2000);
-    return;
-  }
-
-  if (!foundOccurrence) {
-    console.warn('Ocorrência não encontrada ou acesso não autorizado.');
-    notFound.value = true;
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 2000);
-  }
 });
 </script>
 
