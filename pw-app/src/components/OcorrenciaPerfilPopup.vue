@@ -248,6 +248,19 @@ export default {
     },
 
     handleSubmit() {
+      const ocorrenciasData = localStorage.getItem('ocorrencias');
+        let materiaisOriginais = [];
+        if (ocorrenciasData) {
+          const ocorrencias = JSON.parse(ocorrenciasData);
+          const ocorrenciaOriginal = ocorrencias.find(o => o.id === parseInt(this.ocorrenciaEditada.numero || this.ocorrenciaEditada.id));
+          if (ocorrenciaOriginal && ocorrenciaOriginal.materiais) {
+            materiaisOriginais = [...ocorrenciaOriginal.materiais];
+          }
+        }
+
+      // Verificar se está mudando para estado "Resolvido"
+      const estaMudandoParaResolvido = this.ocorrenciaEditada.estado === 'Resolvido' && this.ocorrencia.estado !== 'Resolvido';
+
       // Preparar os dados para atualização
       const ocorrenciaAtualizada = {
         ...this.ocorrenciaEditada,
@@ -255,16 +268,48 @@ export default {
       };
 
       // Atualizar a ocorrência no localStorage
-      this.atualizarOcorrenciaLocalStorage(ocorrenciaAtualizada);
+      this.atualizarOcorrenciaLocalStorage(ocorrenciaAtualizada, materiaisOriginais);
       
+       // Se mudou para resolvido, devolver materiais ao stock
+        if (estaMudandoParaResolvido && ocorrenciaAtualizada.materiais && ocorrenciaAtualizada.materiais.length > 0) {
+          this.devolverMateriaisAoStock(ocorrenciaAtualizada.materiais);
+        }
+
       // Emitir evento com os dados atualizados
       this.$emit('atualizado', ocorrenciaAtualizada);
       
       // Fechar o popup
       this.fecharPopup();
+
+      // Se o estado for "Resolvido", redirecionar para a página de ocorrências
+      if (ocorrenciaAtualizada.estado === 'Resolvido') {
+        this.$router.push('/ocorrencias');
+      }
     },
 
-    atualizarOcorrenciaLocalStorage(ocorrenciaAtualizada) {
+    // Novo método para devolver materiais ao estoque
+    devolverMateriaisAoStock(materiais) {
+      try {
+        const materiaisData = localStorage.getItem('materiais');
+        if (!materiaisData) return;
+        
+        let estoque = JSON.parse(materiaisData);
+        
+        materiais.forEach(material => {
+          const materialNoEstoque = estoque.find(m => m.nomeMaterial === material.nome);
+          if (materialNoEstoque) {
+            materialNoEstoque.quantRest += material.quantidade;
+          }
+        });
+        
+        localStorage.setItem('materiais', JSON.stringify(estoque));
+        console.log('Materiais devolvidos ao estoque:', estoque);
+      } catch (error) {
+        console.error('Erro ao devolver materiais ao estoque:', error);
+      }
+    },
+
+    atualizarOcorrenciaLocalStorage(ocorrenciaAtualizada, materiaisOriginais) {
       try {
         const ocorrenciasData = localStorage.getItem('ocorrencias');
         if (ocorrenciasData) {
@@ -289,21 +334,84 @@ export default {
             console.log('Ocorrência atualizada no localStorage:', ocorrencias[index]);
           }
         }
+        this.atualizarMateriaisNoStock(ocorrenciaAtualizada.materiais, materiaisOriginais);
       } catch (error) {
         console.error('Erro ao atualizar ocorrência no localStorage:', error);
       }
     },
 
+    atualizarMateriaisNoStock(materiaisAntigos, materiaisNovos) {
+      try {
+        // 1. Obter a lista atual de materiais
+        const materiaisData = localStorage.getItem('materiais');
+        if (!materiaisData) return;
+        
+        let materiais = JSON.parse(materiaisData);
+        
+        // 2. Reverter as quantidades dos materiais antigos (incrementar)
+        materiaisAntigos.forEach(materialAntigo => {
+          const materialNoEstoque = materiais.find(m => m.nomeMaterial === materialAntigo.nome);
+          if (materialNoEstoque) {
+            materialNoEstoque.quantRest += materialAntigo.quantidade;
+          }
+        });
+        
+        // 3. Aplicar as novas quantidades (decrementar)
+        materiaisNovos.forEach(materialNovo => {
+          const materialNoEstoque = materiais.find(m => m.nomeMaterial === materialNovo.nome);
+          if (materialNoEstoque) {
+            // Verificar se há quantidade suficiente
+            if (materialNoEstoque.quantRest >= materialNovo.quantidade) {
+              materialNoEstoque.quantRest -= materialNovo.quantidade;
+            } else {
+              console.warn(`Quantidade insuficiente de ${materialNovo.nome} em estoque`);
+              // Aqui você pode decidir como lidar com estoque insuficiente
+              // Por exemplo, ajustar para a quantidade máxima disponível
+              materialNovo.quantidade = materialNoEstoque.quantRest;
+              materialNoEstoque.quantRest = 0;
+            }
+          }
+        });
+        
+        // 4. Salvar de volta no localStorage
+        localStorage.setItem('materiais', JSON.stringify(materiais));
+        
+        console.log('Estoque de materiais atualizado:', materiais);
+      } catch (error) {
+        console.error('Erro ao atualizar materiais no estoque:', error);
+      }
+    },
+
     adicionarMaterial() {
       if (this.novoMaterial.nome && this.novoMaterial.quantidade) {
-        // Verificar se o material já existe na lista
+
+        const materialDisponivel = this.materiaisDisponiveis.find(
+          m => m.nomeMaterial === this.novoMaterial.nome
+        );
+
+        if (!materialDisponivel) return;
+    
+        // Verificar se há quantidade suficiente
+        if (this.novoMaterial.quantidade > materialDisponivel.quantRest) {
+          alert(`Quantidade insuficiente em estoque! Disponível: ${materialDisponivel.quantRest}`);
+          return;
+        }
+        
+         // Verificar se o material já existe na lista
         const materialExistente = this.ocorrenciaEditada.materiais.find(
           m => m.nome === this.novoMaterial.nome
         );
 
         if (materialExistente) {
+          // Verificar se a nova quantidade total não excede o estoque
+          const novaQuantidadeTotal = materialExistente.quantidade + this.novoMaterial.quantidade;
+          if (novaQuantidadeTotal > materialDisponivel.quantRest) {
+            alert(`Quantidade total excede o estoque disponível! Disponível: ${materialDisponivel.quantRest}`);
+            return;
+          }
+          
           // Se já existe, somar a quantidade
-          materialExistente.quantidade += this.novoMaterial.quantidade;
+          materialExistente.quantidade = novaQuantidadeTotal;
         } else {
           // Se não existe, adicionar novo
           this.ocorrenciaEditada.materiais.push({
