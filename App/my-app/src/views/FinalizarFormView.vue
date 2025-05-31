@@ -52,21 +52,31 @@
             <div class="d-flex align-items-center mb-3">
               <i :class="typeIcon" class="fs-1 pe-3 text-secondary"></i>
               <div>
-                <h5 class="m-0 text-capitalize">{{ formattedType }}</h5>
+                <h5 class="m-0 text-capitalize">{{ occurrence.tipoOcorrencia }}</h5>
                 <small class="text-muted">
-                  Criado por: {{ occurrence.createdByName }}
+                  Criado por: {{ occurrence.nomeFuncionario }}
                 </small>
               </div>
             </div>
             <div class="mt-2">
-              <p class="m-0"><strong>Localização:</strong> {{ occurrence.location }}</p>
-              <p class="m-0"><strong>Data:</strong> {{ formatDate(occurrence.createdAt) }}</p>
+              <p class="m-0"><strong>Localização:</strong> {{ occurrence.localizacao }}</p>
+              <p class="m-0"><strong>Data:</strong> {{ occurrence.data }}</p>
               <p class="m-0"><strong>Alocado a:</strong> {{ occurrence.alocadoA }}</p>
+              <p class="m-0"><strong>Descrição:</strong> {{ occurrence.descricao }}</p>
               <p class="m-0"><strong>Status: </strong> 
                 <span :class="occurrence.resolvido ? 'text-success' : 'text-warning'">
                   {{ occurrence.resolvido ? 'Resolvido' : 'Pendente' }}
                 </span>
               </p>
+              <!-- Mostrar materiais se existirem -->
+              <div v-if="occurrence.materiais && occurrence.materiais.length > 0" class="mt-2">
+                <strong>Materiais:</strong>
+                <ul class="mb-0">
+                  <li v-for="material in occurrence.materiais" :key="material.nome">
+                    {{ material.nome }} - Quantidade: {{ material.quantidade }}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -195,13 +205,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useOccurrencesStore } from '@/stores/useOccurrencesStore'
-import { useFeedbackStore } from '@/stores/UseFeedbackStore'
 
 const route = useRoute()
 const router = useRouter()
-const store = useOccurrencesStore()
-const feedbackStore = useFeedbackStore()
 
 // Estados reativos
 const loading = ref(true)
@@ -217,31 +223,99 @@ const currentRating = ref(0)
 const feedbackComment = ref('')
 const isAuthenticated = ref(true)
 const notFound = ref(false)
+const currentUser = ref(null)
 
-// Formatadores
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString('pt-PT')
+// Funções para trabalhar com localStorage
+const getFromLocalStorage = (key) => {
+  try {
+    const item = localStorage.getItem(key)
+    return item ? JSON.parse(item) : null
+  } catch (error) {
+    console.error(`Erro ao ler ${key} do localStorage:`, error)
+    return null
+  }
 }
 
-const formattedType = computed(() => {
-  const types = {
-    'falta_material': 'Falta de Material',
-    'local_sujo': 'Local Sujo',
-    'equipamento_danificado': 'Equipamento Danificado',
-    'material_fora_lugar': 'Material Fora do Lugar'
+const saveToLocalStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (error) {
+    console.error(`Erro ao salvar ${key} no localStorage:`, error)
   }
-  return types[occurrence.value?.type] || occurrence.value?.type
+}
+
+const getCurrentUser = () => {
+  return getFromLocalStorage('user')
+}
+
+const getOccurrences = () => {
+  return getFromLocalStorage('ocorrencias') || []
+}
+
+const getFuncionarios = () => {
+  return getFromLocalStorage('funcionarios') || []
+}
+
+const updateOccurrence = (updatedOccurrence) => {
+  const occurrences = getOccurrences(); // Carregar ocorrências do localStorage
+  console.log('Ocorrências carregadas para atualização:', occurrences);
+
+  const index = occurrences.findIndex(occ => occ.id === updatedOccurrence.id);
+  console.log('Índice da ocorrência encontrada:', index);
+
+  if (index !== -1) {
+    occurrences[index] = { ...occurrences[index], ...updatedOccurrence };
+    saveToLocalStorage('ocorrencias', occurrences);
+    console.log('Ocorrência atualizada:', occurrences[index]);
+    return true;
+  }
+
+  console.error('Ocorrência não encontrada para atualização:', updatedOccurrence);
+  return false;
+}
+
+const addRating = (rating, comment) => {
+  const ratings = getFromLocalStorage('rating') || []
+  const newRating = {
+    id: ratings.length + 1,
+    rating: rating,
+    comment: comment || '',
+    data: new Date().toLocaleDateString('pt-PT')
+  }
+  ratings.push(newRating)
+  saveToLocalStorage('rating', ratings)
+}
+
+// Computed para ícone do tipo de ocorrência
+const typeIcon = computed(() => {
+  if (!occurrence.value) return 'bi bi-exclamation-circle'
+  
+  const type = occurrence.value.tipoOcorrencia?.toLowerCase()
+  const icons = {
+    'material em falta': 'bi bi-capsule-pill',
+    'limpeza necessária': 'bi bi-trash',
+    'equipamento danificado': 'bi bi-tools',
+    'material mal alocado': 'bi bi-briefcase'
+  }
+  return icons[type] || 'bi bi-exclamation-circle'
 })
 
-const typeIcon = computed(() => {
-  const icons = {
-    'falta_material': 'bi bi-capsule-pill',
-    'local_sujo': 'bi bi-trash',
-    'equipamento_danificado': 'bi bi-tools',
-    'material_fora_lugar': 'bi bi-briefcase'
-  }
-  return icons[occurrence.value?.type] || 'bi bi-exclamation-circle'
-})
+// Verificar se o usuário atual pode finalizar esta ocorrência
+const canUserResolveOccurrence = (occ, user) => {
+  if (!user || !occ) return false
+  
+  // Usuário pode finalizar se:
+  // 1. É a pessoa a quem foi alocada a ocorrência
+  // 2. É um administrador/gestor (pode implementar lógica específica aqui)
+  
+  const funcionarios = getFuncionarios()
+  const currentUserData = funcionarios.find(f => f.email === user.email)
+  
+  if (!currentUserData) return false
+  
+  // Verificar se o usuário atual é quem deve resolver (alocadoA)
+  return occ.alocadoA === currentUserData.nome || occ.alocadoA === '-'
+}
 
 // Lógica de arquivo
 const handleFileUpload = (event) => {
@@ -275,7 +349,8 @@ const removeFile = () => {
 onMounted(async () => {
   try {
     // Verificar autenticação
-    if (!store.currentUser) {
+    currentUser.value = getCurrentUser()
+    if (!currentUser.value) {
       console.warn('Nenhum usuário logado. Redirecionando para login.')
       isAuthenticated.value = false
       setTimeout(() => {
@@ -289,10 +364,11 @@ onMounted(async () => {
       throw new Error('ID inválido')
     }
     
-    const foundOccurrence = store.getOccurrenceById(occurrenceId)
+    const occurrences = getOccurrences()
+    const foundOccurrence = occurrences.find(occ => occ.id === occurrenceId)
     
     if (!foundOccurrence) {
-      console.warn('Ocorrência não encontrada ou acesso não autorizado.')
+      console.warn('Ocorrência não encontrada.')
       notFound.value = true
       setTimeout(() => {
         router.push('/finalizar')
@@ -300,7 +376,17 @@ onMounted(async () => {
       return
     }
 
-    if (foundOccurrence.resolvido) { // Mudança: usar resolvido em vez de status
+    // Verificar se o usuário pode resolver esta ocorrência
+    if (!canUserResolveOccurrence(foundOccurrence, currentUser.value)) {
+      console.warn('Usuário não tem permissão para resolver esta ocorrência.')
+      notFound.value = true
+      setTimeout(() => {
+        router.push('/finalizar')
+      }, 2000)
+      return
+    }
+
+    if (foundOccurrence.resolvido) {
       console.warn('Ocorrência já finalizada.')
       notFound.value = true
       setTimeout(() => {
@@ -333,7 +419,7 @@ const closeFeedback = () => {
 
 const submitRating = () => {
   if (currentRating.value > 0) {
-    feedbackStore.addRating(currentRating.value, feedbackComment.value)
+    addRating(currentRating.value, feedbackComment.value)
     closeFeedback()
   }
 }
@@ -342,31 +428,45 @@ const submitRating = () => {
 const handleSubmit = async () => {
   try {
     if (!resolutionComment.value.trim()) {
-      alert('Por favor, descreva a solução aplicada')
-      return
+      alert('Por favor, descreva a solução aplicada');
+      return;
     }
 
-    const shouldShowFeedback = store.resolveOccurrence({
-      id: occurrence.value.id,
-      comment: resolutionComment.value.trim(),
-      proof: fileData.value ? {
-        data: fileData.value,
-        type: fileType.value,
-        name: fileName.value
-      } : null
-    })
+    const updateData = {
+      id: occurrence.value.id, // Certifique-se de que o ID está sendo passado corretamente
+      resolvido: true,
+      dataResolucao: new Date().toLocaleDateString('pt-PT'),
+      solucao: resolutionComment.value.trim(),
+      resolvidoPor: currentUser.value.name || currentUser.value.email,
+    };
 
-    if (shouldShowFeedback) {
-      setTimeout(() => {
-        showFeedback.value = true
-      }, 1000)
+    if (fileData.value) {
+      updateData.provaF = filePreview.value;
+      updateData.tipoProva = fileType.value;
+      updateData.nomeArquivo = fileName.value;
+    }
+
+    console.log('Dados para atualização:', updateData);
+
+    const success = updateOccurrence(updateData);
+
+    if (success) {
+      alert('Ocorrência finalizada com sucesso!');
+      const shouldShowFeedback = Math.random() > 0.5; // 50% de chance de mostrar avaliação
+      if (shouldShowFeedback) {
+        setTimeout(() => {
+          showFeedback.value = true;
+        }, 1000);
+      } else {
+        router.push('/finalizar');
+      }
     } else {
-      router.push('/finalizar')
+      throw new Error('Falha ao atualizar ocorrência');
     }
   } catch (error) {
-    console.error('Erro ao finalizar:', error)
-    alert('Ocorreu um erro ao finalizar. Tente novamente.')
-    router.push('/finalizar')
+    console.error('Erro ao finalizar:', error);
+    alert('Ocorreu um erro ao finalizar. Tente novamente.');
+    router.push('/finalizar');
   }
 }
 </script>

@@ -79,6 +79,10 @@ export default {
       historyData: {
         labels: [],
         values: []
+      },
+      feedbackData: {
+        labels: [],
+        values: []
       }
     };
   },
@@ -98,6 +102,9 @@ export default {
         // Carregar ocorrências
         const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
         
+        // Carregar ratings
+        const ratings = JSON.parse(localStorage.getItem('rating') || '[]');
+        
         // Processar funcionários que mais contribuíram (baseado em ocorrências reportadas)
         this.processTopEmployees(funcionarios, ocorrencias);
         
@@ -109,6 +116,9 @@ export default {
         
         // Processar histórico baseado nas datas reais das ocorrências
         this.processHistoryData(ocorrencias);
+        
+        // Processar dados de feedback (ratings)
+        this.processFeedbackData(ratings);
         
       } catch (error) {
         console.error('Erro ao carregar dados do localStorage:', error);
@@ -261,6 +271,72 @@ export default {
       }
     },
     
+    processFeedbackData(ratings) {
+      // Processar dados de feedback baseados nos ratings reais
+      const monthRatings = {};
+      const currentYear = new Date().getFullYear();
+      
+      console.log('Processando ratings para feedback:', ratings);
+      
+      // Processar cada rating para extrair mês/ano da data
+      ratings.forEach(rating => {
+        if (rating.data && rating.rating) {
+          try {
+            // Assumindo que a data está no formato DD/MM/YYYY
+            const dateParts = rating.data.split('/');
+            let month, year;
+            
+            if (dateParts.length === 3) {
+              // Formato DD/MM/YYYY
+              month = parseInt(dateParts[1]);
+              year = parseInt(dateParts[2]);
+              
+              console.log(`Rating processado: ${rating.data} -> Mês: ${month}, Ano: ${year}, Rating: ${rating.rating}`);
+              
+              // Só considerar ratings do ano atual
+              if (year === currentYear && month >= 1 && month <= 12) {
+                if (!monthRatings[month]) {
+                  monthRatings[month] = [];
+                }
+                monthRatings[month].push(rating.rating);
+                console.log(`Adicionando rating ${rating.rating} ao mês ${month}`);
+              }
+            }
+          } catch (error) {
+            console.error('Erro ao processar data do rating:', rating.data, error);
+          }
+        }
+      });
+      
+      console.log('Ratings por mês:', monthRatings);
+      
+      // Calcular média dos ratings por mês
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const currentMonth = new Date().getMonth() + 1;
+      
+      this.feedbackData.labels = [];
+      this.feedbackData.values = [];
+      
+      for (let i = 1; i <= currentMonth; i++) {
+        if (monthRatings[i] && monthRatings[i].length > 0) {
+          // Calcular média dos ratings do mês
+          const avgRating = monthRatings[i].reduce((sum, rating) => sum + rating, 0) / monthRatings[i].length;
+          this.feedbackData.labels.push(monthNames[i - 1]);
+          this.feedbackData.values.push(Math.round(avgRating * 100) / 100); // Arredondar para 2 casas decimais
+          console.log(`Mês ${monthNames[i - 1]}: Média = ${avgRating}`);
+        }
+      }
+      
+      console.log('Labels de feedback finais:', this.feedbackData.labels);
+      console.log('Valores de feedback finais:', this.feedbackData.values);
+      
+      // Se não houver dados de rating, usar dados padrão
+      if (this.feedbackData.labels.length === 0) {
+        this.feedbackData.labels = ['Sem dados'];
+        this.feedbackData.values = [0];
+      }
+    },
+    
     setDefaultData() {
       // Dados padrão caso não existam dados no localStorage
       this.topEmployees = [
@@ -279,17 +355,21 @@ export default {
         labels: ['Sem dados'],
         values: [0]
       };
+      this.feedbackData = {
+        labels: ['Sem dados'],
+        values: [0]
+      };
     },
     
     renderCharts() {
-      // Gráfico de Feedback (mantido como estava - dados simulados)
+      // Gráfico de Feedback - usando dados reais dos ratings
       new Chart(this.$refs.feedbackChart, {
         type: 'bar',
         data: {
-          labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
+          labels: this.feedbackData.labels,
           datasets: [{
-            label: 'Avaliação',
-            data: [4, 3, 5, 4, 3, 4, 5],
+            label: 'Avaliação Média',
+            data: this.feedbackData.values,
             backgroundColor: '#03B5AA'
           }]
         },
@@ -302,6 +382,15 @@ export default {
               max: 5,
               ticks: {
                 stepSize: 1
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Avaliação Média: ${context.parsed.y}/5`;
+                }
               }
             }
           }
