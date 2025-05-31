@@ -22,6 +22,15 @@
       </div>
     </div>
 
+    <!-- Mensagem de funcionário não encontrado -->
+    <div v-else-if="!funcionarioEncontrado" class="container my-4 text-center">
+      <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Funcionário não encontrado no sistema.
+        <div class="mt-2">Entre em contato com o administrador.</div>
+      </div>
+    </div>
+
     <div v-else>
       <!-- Botões de ação -->
       <div class="d-flex justify-content-end gap-2 me-4 mb-2">
@@ -36,8 +45,8 @@
       <!-- Perfil -->
       <div class="d-flex align-items-center ms-3" style="width: 100%; height: 200px; position: relative;">
         <img 
-          v-if="user.imageUrl" 
-          :src="user.imageUrl" 
+          v-if="user.picture" 
+          :src="user.picture" 
           alt="User Image" 
           style="height: 105px; width: 105px; border-radius: 100%; margin-right: 1rem;" 
         />
@@ -48,8 +57,10 @@
         ></i>
 
         <div class="d-flex flex-column">
-          <span class="fs-4 fw-bold">{{ user.name }}</span>
+          <span class="fs-4 fw-bold">{{ funcionario.nome }}</span>
           <span class="fs-5">{{ user.email }}</span>
+          <span class="fs-6 text-muted">{{ funcionario.funcao }} - {{ funcionario.area }}</span>
+          <span class="fs-6 text-muted">Nº: {{ funcionario.numero }}</span>
         </div>
       </div>
 
@@ -108,46 +119,108 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useOccurrencesStore } from '@/stores/useOccurrencesStore'
 import OccurrenceCard from '@/components/OccurrenceCard.vue'
 
 const router = useRouter()
-const store = useOccurrencesStore()
-const isAuthenticated = ref(true)
+const isAuthenticated = ref(false)
+const funcionarioEncontrado = ref(false)
 const showLogoutConfirm = ref(false)
 
 const user = ref({
   name: '',
   email: '',
-  imageUrl: ''
+  picture: ''
 })
 
+const funcionario = ref({
+  id: null,
+  nome: '',
+  numero: '',
+  funcao: '',
+  area: '',
+  email: '',
+  contacto: ''
+})
+
+const allOccurrences = ref([])
+
 onMounted(() => {
-  // Verificar autenticação
-  if (!store.currentUser) {
-    console.warn('Nenhum usuário logado. Redirecionando para login.')
+  try {
+    // 1. Verificar se existe usuário do Google no localStorage
+    const googleUser = JSON.parse(localStorage.getItem('user'))
+    if (!googleUser || !googleUser.email) {
+      console.warn('Nenhum usuário do Google logado. Redirecionando para login.')
+      isAuthenticated.value = false
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+      return
+    }
+
+    isAuthenticated.value = true
+    user.value = {
+      name: googleUser.name || '',
+      email: googleUser.email || '',
+      picture: googleUser.picture || ''
+    }
+
+    // 2. Buscar funcionários no localStorage
+    const funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || []
+    
+    // 3. Encontrar o funcionário com o mesmo email do usuário Google
+    const funcionarioCorrespondente = funcionarios.find(func => 
+      func.email && func.email.toLowerCase() === googleUser.email.toLowerCase()
+    )
+
+    if (!funcionarioCorrespondente) {
+      console.warn('Funcionário não encontrado para o email:', googleUser.email)
+      funcionarioEncontrado.value = false
+      return
+    }
+
+    funcionarioEncontrado.value = true
+    funcionario.value = funcionarioCorrespondente
+
+    // 4. Carregar todas as ocorrências do localStorage
+    allOccurrences.value = JSON.parse(localStorage.getItem('ocorrencias')) || []
+
+    console.log('Funcionário encontrado:', funcionario.value)
+    console.log('Total de ocorrências:', allOccurrences.value.length)
+    console.log('Ocorrências pendentes do funcionário:', pendingOccurrences.value.length)
+
+  } catch (error) {
+    console.error('Erro ao carregar dados do perfil:', error)
     isAuthenticated.value = false
     setTimeout(() => {
       router.push('/')
     }, 2000)
-    return
   }
-
-  // Carregar dados do usuário
-  user.value.name = store.currentUser.name || ''
-  user.value.email = store.currentUser.email || ''
-  user.value.imageUrl = store.currentUser.picture || ''
 })
 
-// Modificado para mostrar apenas pendentes mais recentes
+// Ocorrências pendentes do funcionário atual
 const pendingOccurrences = computed(() => {
-  if (!store.currentUser) return []
+  if (!funcionario.value.numero || !allOccurrences.value.length) {
+    return []
+  }
   
-  const occurrences = store.userOccurrences(store.currentUserId)
-  return occurrences
-    .filter(o => !o.resolvido) // Mudança: !o.resolvido em vez de status === 'pending'
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Ordena por data (mais recente primeiro)
-    .slice(0, 3) // Limita a 3 ocorrências
+  return allOccurrences.value
+    .filter(ocorrencia => {
+      // Filtrar por funcionário (comparando numeroFuncionario com numero do funcionário)
+      const isFuncionarioOcorrencia = ocorrencia.numeroFuncionario === funcionario.value.numero || 
+                                     ocorrencia.numeroFuncionario === funcionario.value.id
+      
+      // Filtrar apenas pendentes (não resolvidas)
+      const isPendente = !ocorrencia.resolvido
+      
+      return isFuncionarioOcorrencia && isPendente
+    })
+    .sort((a, b) => {
+      // Ordenar por data (mais recente primeiro)
+      const dateA = new Date(a.data.split('/').reverse().join('-'))
+      const dateB = new Date(b.data.split('/').reverse().join('-'))
+      return dateB - dateA
+    })
+    .slice(0, 3) // Limitar a 3 ocorrências mais recentes
 })
 
 // Funções de logout
@@ -157,7 +230,8 @@ const handleLogout = () => {
 
 const confirmLogout = () => {
   try {
-    store.logout()
+    // Remover dados do usuário do localStorage
+    localStorage.removeItem('user')
     showLogoutConfirm.value = false
     router.push('/')
   } catch (error) {

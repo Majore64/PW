@@ -149,8 +149,13 @@ onMounted(() => {
 // Computed para data (usa o campo 'data' do localStorage)
 const formattedDate = computed(() => {
   if (!occurrence.value?.data) return '';
-  const date = new Date(occurrence.value.data);
-  return date.toLocaleDateString('pt-PT') + ' ' + date.toLocaleTimeString('pt-PT');
+  
+  // Converter o formato DD/MM/YYYY para YYYY-MM-DD
+  const [day, month, year] = occurrence.value.data.split('/');
+  const isoDate = `${year}-${month}-${day}`;
+  
+  const date = new Date(isoDate);
+  return date.toLocaleDateString('pt-PT'); // Apenas a data
 });
 
 // Computed para tipo (usa o campo 'tipoOcorrencia')
